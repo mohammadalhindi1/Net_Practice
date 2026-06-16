@@ -1,165 +1,170 @@
-# NetPractice - 42 Network Configuration Project
+# NetPractice
 
-This repository contains my solutions and notes for the **NetPractice** project from the **42 curriculum**.
+NetPractice is a 42 networking project focused on IP addressing, subnet masks, routing tables, gateways, and troubleshooting network communication.
 
-NetPractice is a practical networking exercise where the goal is to configure IP addresses, subnet masks, gateways, and routing tables so that different hosts can communicate correctly across multiple networks.
+This repository contains my solved configurations, screenshots, and explanations for all 10 levels.
 
-## Project Overview
+## Contents
 
-The project focuses on understanding the basics of computer networking through visual network scenarios.
+- [Basics](#basics)
+- [Subnet Planning](#subnet-planning)
+- [Levels](#levels)
+- [Common Errors](#common-errors)
 
-The main concepts covered are:
+## Basics
 
-* IP addressing
-* Subnet masks
-* Network addresses
-* Broadcast addresses
-* Usable host ranges
-* Default gateways
-* Routing tables
-* Router-to-router communication
-* Host-to-host communication
-* Internet reverse routes
-* Troubleshooting routing errors
+### IP Address
 
-## Repository Content
+An IP address identifies an interface inside a network.
 
-This repository includes JSON configuration files for each level:
+### Subnet Mask
 
-| Level    | File           |
-| -------- | -------------- |
-| Level 1  | `level1.json`  |
-| Level 2  | `level2.json`  |
-| Level 3  | `level3.json`  |
-| Level 4  | `level4.json`  |
-| Level 5  | `level5.json`  |
-| Level 6  | `level6.json`  |
-| Level 7  | `level7.json`  |
-| Level 8  | `level8.json`  |
-| Level 9  | `level9.json`  |
-| Level 10 | `level10.json` |
+A subnet mask defines the network size and determines which IP addresses belong to the same network.
 
-Each file represents the saved configuration for one NetPractice level.
+### Gateway
 
-## What I Learned
+A gateway is the next hop used to reach another network.
 
-While working on this project, I learned how to analyze a network step by step instead of guessing values.
+### Routing Table
 
-The most important rules I used were:
+A routing table tells a host or router where to send packets based on the destination network.
 
-### 1. Devices on the same link must be in the same subnet
+## Subnet Planning
 
-If two interfaces are directly connected, they must share the same network.
+| Required usable IPs | Best subnet | Mask |
+|---:|---:|---:|
+| 2 | `/30` | `255.255.255.252` |
+| 3 - 6 | `/29` | `255.255.255.248` |
+| 7 - 14 | `/28` | `255.255.255.240` |
+| 15 - 30 | `/27` | `255.255.255.224` |
+| 31 - 62 | `/26` | `255.255.255.192` |
+| 63 - 126 | `/25` | `255.255.255.128` |
+| 127 - 254 | `/24` | `255.255.255.0` |
 
-Example:
+## Levels
 
-```text
-Host A: 192.168.1.2/24
-Router: 192.168.1.1/24
-```
+<details>
+<summary>Level 1 - Direct Host Communication</summary>
 
-Both belong to:
+![Level 1](screenshots/level1.png)
 
-```text
-192.168.1.0/24
-```
+### Goal
 
-### 2. A gateway must be directly reachable
+Two direct host-to-host communications:
 
-A gateway is the next hop, not the final destination.
+- Host A to Host B
+- Host C to Host D
 
-A host should usually send unknown traffic to the router interface connected to its own network.
+### Explanation
 
-Example:
+There are two separate networks.  
+Each pair of connected hosts must belong to the same subnet.
 
-```text
-0.0.0.0/0 => 192.168.1.1
-```
+No router is used in this level, so no gateway is required.
 
-### 3. Routers need routes to remote networks
+### Key Rule
 
-A router only knows its directly connected networks.
-For any remote network, a route must be added manually.
+Devices connected directly must share the same subnet.
 
-Example:
+</details>
 
-```text
-10.0.2.0/24 => 10.0.1.2
-```
+<details>
+<summary>Level 2</summary>
 
-### 4. Communication needs a forward path and a reverse path
+![Level 2](screenshots/level2.png)
 
-If host A can reach host B, host B must also be able to send traffic back to host A.
+Explanation will be added here.
 
-Many NetPractice errors happen because the forward route works but the reverse route is missing.
+</details>
 
-### 5. Network and broadcast addresses cannot be used by hosts
+<details>
+<summary>Level 3</summary>
 
-For example, in:
+![Level 3](screenshots/level3.png)
 
-```text
-192.168.1.0/30
-```
+Explanation will be added here.
 
-The addresses are:
+</details>
 
-```text
-192.168.1.0   Network address
-192.168.1.1   Usable
-192.168.1.2   Usable
-192.168.1.3   Broadcast address
-```
+<details>
+<summary>Level 4</summary>
 
-Only the usable addresses can be assigned to interfaces.
+![Level 4](screenshots/level4.png)
 
-## Common Errors I Faced
+Explanation will be added here.
 
-| Error                | Meaning                                                   |
-| -------------------- | --------------------------------------------------------- |
-| `invalid IP address` | The IP is probably a network or broadcast address         |
-| `no route`           | A route is missing                                        |
-| `invalid route`      | The gateway is not reachable                              |
-| `loop detected`      | Traffic is being sent in a loop between devices           |
-| `wrong host`         | The packet reached an IP that belongs to the wrong device |
-| `no reverse way`     | Forward path works, but the return path is missing        |
+</details>
 
-## How I Approach Each Level
+<details>
+<summary>Level 5</summary>
 
-My solving process:
+![Level 5](screenshots/level5.png)
 
-1. Identify which hosts need to communicate.
-2. Split the diagram into separate networks.
-3. Check which devices are connected by switches or direct links.
-4. Assign valid IP addresses and subnet masks.
-5. Configure host default gateways.
-6. Add router routes for remote networks.
-7. Check the reverse path.
-8. Read the logs and fix the first real error.
+Explanation will be added here.
 
-## Important Notes
+</details>
 
-* A switch does not separate networks.
-* A router separates networks.
-* Every router interface usually belongs to a different subnet.
-* `0.0.0.0/0` means "any destination".
-* The right side of a route must be a reachable gateway IP, not a network address.
-* The left side of a route is the destination network.
+<details>
+<summary>Level 6</summary>
 
-## 42 Project Rules
+![Level 6](screenshots/level6.png)
 
-This repository is intended for learning and revision.
+Explanation will be added here.
 
-If you are a 42 student, do not copy the solutions blindly.
-Use them to compare your reasoning after trying to solve the levels yourself.
+</details>
 
-The goal of NetPractice is not only to pass the project, but to understand how IP addressing and routing work.
+<details>
+<summary>Level 7</summary>
 
-## Status
+![Level 7](screenshots/level7.png)
 
-Project completed.
+Explanation will be added here.
+
+</details>
+
+<details>
+<summary>Level 8</summary>
+
+![Level 8](screenshots/level8.png)
+
+Explanation will be added here.
+
+</details>
+
+<details>
+<summary>Level 9</summary>
+
+![Level 9](screenshots/level9.png)
+
+Explanation will be added here.
+
+</details>
+
+<details>
+<summary>Level 10</summary>
+
+![Level 10](screenshots/level10.png)
+
+Explanation will be added here.
+
+</details>
+
+## Common Errors
+
+| Error | Meaning |
+|---|---|
+| `invalid IP address` | The IP is probably a network or broadcast address |
+| `no route` | A route is missing |
+| `invalid route` | The gateway is not reachable |
+| `loop detected` | Traffic is being sent back and forth between routers |
+| `wrong host` | The packet reached the right IP but on the wrong device |
+| `no reverse way` | Forward path works, but the return path is missing |
+
+## 42 Note
+
+This repository is for learning and revision.  
+If you are working on NetPractice, try to solve each level first before comparing with these notes.
 
 ## Author
 
 Mohammad Alhindi
-
-* GitHub: [@mohammadalhindi1](https://github.com/mohammadalhindi1)
