@@ -25,6 +25,7 @@ This guide is written as a study reference for myself and for anyone learning th
 ## Contents
 
 * [Repository Structure](#repository-structure)
+* [How to Use NetPractice](#how-to-use-netpractice)
 * [Basics](#basics)
 
   * [IPv4 Addresses](#ipv4-addresses)
@@ -89,6 +90,158 @@ This guide is written as a study reference for myself and for anyone learning th
 | `README.md` | Contains the explanation, concepts, and level walkthroughs |
 
 ---
+
+## How to Use NetPractice
+
+When you open NetPractice, you will see two modes:
+
+```text
+Training
+Evaluation
+```
+
+### Training Mode
+
+Training mode is used for practice.
+
+In this mode, you can solve the levels one by one and move between them freely.
+
+After solving a level, click:
+
+```text
+Get my config
+```
+
+to export the configuration as a `.json` file.
+
+This is the file saved in this repository under:
+
+```text
+solution/
+```
+
+Example:
+
+```text
+solution/level1.json
+```
+
+### Evaluation Mode
+
+Evaluation mode is the real project validation mode.
+
+In the 42 evaluation, you usually need to solve the levels within a limited time.
+
+A good target is:
+
+```text
+Less than 15 minutes
+```
+
+To be ready for evaluation, practice until you can:
+
+* Read the topology quickly.
+* Identify subnets without guessing.
+* Configure gateways correctly.
+* Add router routes without creating loops.
+* Fix errors by reading the logs.
+
+### Recommended Practice Method
+
+Before going to evaluation mode, solve the levels in order:
+
+```text
+Level 1 -> Level 2 -> Level 3 -> ... -> Level 10
+```
+
+Do not jump directly to the final levels.
+
+The levels build on each other:
+
+* Early levels teach direct communication and subnet masks.
+* Middle levels introduce gateways and routers.
+* Later levels combine routing tables, reverse paths, Internet routes, and troubleshooting.
+
+### During Evaluation
+
+My strategy during evaluation is:
+
+1. Start with the easiest directly connected networks.
+2. Configure host IPs and masks first.
+3. Configure gateways only after the local networks are correct.
+4. Configure router routes.
+5. Configure Internet reverse routes.
+6. Press `Check again`.
+7. Read the first real error in the log.
+8. Fix one problem at a time.
+
+Do not randomly change values.
+
+Most mistakes come from:
+
+```text
+Wrong subnet
+Wrong gateway
+Missing reverse route
+Network or broadcast address used as host IP
+Routing loop
+```
+
+### Using the Logs
+
+The logs are very useful because they show the exact path of the packet.
+
+Example:
+
+```text
+Forward way: A -> B
+on A: packet accepted
+on A: send to A1
+on B: packet accepted
+on B: destination IP reached
+```
+
+This means the forward path worked.
+
+For a complete success, the reverse path must also work:
+
+```text
+Reverse way: B -> A
+on B: packet accepted
+on B: send to B1
+on A: packet accepted
+on A: destination IP reached
+```
+
+If the forward path works but the reverse path fails, the problem is usually a missing return route.
+
+If the log says:
+
+```text
+loop detected
+```
+
+then traffic is probably being sent back to a device it already passed through.
+
+If the log says:
+
+```text
+invalid route
+```
+
+then the gateway is probably not directly reachable.
+
+If the log says:
+
+```text
+destination does not match any route
+```
+
+then a route is missing.
+
+---
+
+[back to contents](#contents)
 
 ## Basics
 
