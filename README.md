@@ -1,94 +1,120 @@
-# NetPractice - 42 Network Configuration Project
+# NetPractice
 
 <p align="center">
-  <img src="screenshots/level10.png" alt="NetPractice Preview" width="900"/>
+  <img src="img/level10.png" alt="NetPractice Final Level Preview" width="900"/>
 </p>
 
 <p align="center">
   <img src="https://img.shields.io/badge/42-NetPractice-blue" alt="42 NetPractice"/>
-  <img src="https://img.shields.io/badge/Topic-Networking-green" alt="Networking"/>
+  <img src="https://img.shields.io/badge/Networking-IPv4-green" alt="Networking"/>
   <img src="https://img.shields.io/badge/Status-Completed-brightgreen" alt="Completed"/>
 </p>
 
-## Overview
+## About
 
-This repository contains my solutions, screenshots, and explanations for the **NetPractice** project from the **42 curriculum**.
+This repository contains my solutions and explanations for the **NetPractice** project from the **42 curriculum**.
 
-NetPractice is a practical networking project where the goal is to configure IP addresses, subnet masks, gateways, and routing tables so that hosts can communicate correctly across different networks.
+NetPractice is a networking project focused on configuring IPv4 addresses, subnet masks, gateways, and routing tables to make different hosts communicate correctly.
 
-The main goal of this repository is not only to store the final configuration files, but also to explain the reasoning behind each level.
+The purpose of this repository is not just to store the final answers, but to document the way I think through each level, how I split the network, how I choose valid subnets, and how I debug routing errors.
+
+This guide is written as a study reference for myself and for anyone learning the basics of networking through NetPractice.
 
 ---
 
 ## Contents
 
-* [Project Structure](#project-structure)
-* [Core Networking Concepts](#core-networking-concepts)
-* [How I Solve NetPractice Levels](#how-i-solve-netpractice-levels)
-* [Subnet Planning Cheat Sheet](#subnet-planning-cheat-sheet)
-* [Level Walkthroughs](#level-walkthroughs)
-* [Common NetPractice Errors](#common-netpractice-errors)
+* [Repository Structure](#repository-structure)
+* [Basics](#basics)
+
+  * [IPv4 Addresses](#ipv4-addresses)
+  * [Special IP Ranges](#special-ip-ranges)
+  * [Masks](#masks)
+  * [Switches](#switches)
+  * [Routers](#routers)
+  * [Routing Tables](#routing-tables)
+  * [Network Logic](#network-logic)
+* [How I Approach NetPractice](#how-i-approach-netpractice)
+* [Common Errors](#common-errors)
+* [Levels](#levels)
+
+  * [Level 1](#level-1)
+  * [Level 2](#level-2)
+  * [Level 3](#level-3)
+  * [Level 4](#level-4)
+  * [Level 5](#level-5)
+  * [Level 6](#level-6)
+  * [Level 7](#level-7)
+  * [Level 8](#level-8)
+  * [Level 9](#level-9)
+  * [Level 10](#level-10)
 * [42 Note](#42-note)
 * [Author](#author)
 
 ---
 
-## Project Structure
+## Repository Structure
 
 ```text
 .
 ├── README.md
-├── configs/
-│   ├── level1.json
-│   ├── level2.json
-│   ├── level3.json
-│   ├── level4.json
-│   ├── level5.json
-│   ├── level6.json
-│   ├── level7.json
-│   ├── level8.json
-│   ├── level9.json
-│   └── level10.json
-└── screenshots/
-    ├── level1.png
-    ├── level2.png
-    ├── level3.png
-    ├── level4.png
-    ├── level5.png
-    ├── level6.png
-    ├── level7.png
-    ├── level8.png
-    ├── level9.png
-    └── level10.png
+├── img/
+│   ├── level1.png
+│   ├── level2.png
+│   ├── level3.png
+│   ├── level4.png
+│   ├── level5.png
+│   ├── level6.png
+│   ├── level7.png
+│   ├── level8.png
+│   ├── level9.png
+│   └── level10.png
+└── solution/
+    ├── level1.json
+    ├── level2.json
+    ├── level3.json
+    ├── level4.json
+    ├── level5.json
+    ├── level6.json
+    ├── level7.json
+    ├── level8.json
+    ├── level9.json
+    └── level10.json
 ```
 
-| Folder         | Description                                                |
-| -------------- | ---------------------------------------------------------- |
-| `configs/`     | Contains the saved JSON configuration files for each level |
-| `screenshots/` | Contains screenshots of the solved levels                  |
-| `README.md`    | Contains the full project explanation and walkthrough      |
+| Folder      | Description                                                |
+| ----------- | ---------------------------------------------------------- |
+| `img/`      | Contains screenshots for every solved level                |
+| `solution/` | Contains the exported NetPractice JSON configuration files |
+| `README.md` | Contains the explanation, concepts, and level walkthroughs |
 
 ---
 
-## Core Networking Concepts
+## Basics
 
-### IP Address
+For this project, we only deal with **IPv4**.
 
-An IP address identifies an interface inside a network.
+An IPv4 address is a 32-bit number divided into four blocks. Each block is 8 bits.
 
 Example:
 
 ```text
-192.168.1.10
+192.168.100.1
 ```
 
-In NetPractice, every interface must have a valid IP address that belongs to the correct subnet.
+In binary:
 
----
+```text
+11000000.10101000.01100100.00000001
+```
 
-### Subnet Mask
+Each block can have a value from:
 
-A subnet mask defines the size of the network.
+```text
+0 to 255
+```
+
+The same binary logic applies to subnet masks.
 
 Example:
 
@@ -96,81 +122,217 @@ Example:
 255.255.255.0
 ```
 
-This is the same as:
+In binary:
 
 ```text
-/24
+11111111.11111111.11111111.00000000
 ```
 
-The subnet mask tells us which part of the IP address represents the network and which part represents the hosts.
+After a bit becomes `0` in a subnet mask, there cannot be any `1` bits after it.
+
+That is why these values are valid inside masks:
+
+```text
+255 = 11111111
+254 = 11111110
+252 = 11111100
+248 = 11111000
+240 = 11110000
+224 = 11100000
+192 = 11000000
+128 = 10000000
+0   = 00000000
+```
+
+So this is a valid mask:
+
+```text
+255.255.255.0
+```
+
+But this is not a valid mask:
+
+```text
+255.255.128.128
+```
+
+because after the mask starts using `0` bits, it cannot go back to `1` bits.
 
 ---
 
-### Network Address
+## IPv4 Addresses
 
-The network address represents the subnet itself.
+An IP address identifies an interface inside a network.
+
+In NetPractice, we do not configure devices directly. We configure their interfaces.
 
 Example:
+
+```text
+interface A1
+IP:   192.168.1.2
+Mask: 255.255.255.0
+```
+
+This means interface `A1` belongs to the network:
 
 ```text
 192.168.1.0/24
 ```
 
-Here:
-
-```text
-192.168.1.0
-```
-
-is the network address.
-
-It cannot be assigned to a device.
+Two devices can communicate directly only if they are in the same network, or if there is a router between their networks.
 
 ---
 
-### Broadcast Address
+## Special IP Ranges
 
-The broadcast address is the last address in a subnet.
+Some IP ranges are reserved for private networks.
+
+These private ranges are:
+
+```text
+10.0.0.0      - 10.255.255.255
+172.16.0.0    - 172.31.255.255
+192.168.0.0   - 192.168.255.255
+```
+
+The loopback range is:
+
+```text
+127.0.0.0 - 127.255.255.255
+```
+
+For NetPractice, the most important thing is not whether an IP is public or private. The most important thing is whether the IP belongs to the correct subnet.
+
+---
+
+## Masks
+
+A subnet mask decides which IP addresses are part of the same network.
+
+There are two common ways to write a subnet mask:
+
+```text
+Dot-decimal notation: 255.255.255.0
+CIDR notation:        /24
+```
 
 Example:
 
 ```text
-192.168.1.255
+192.168.1.10/24
 ```
 
-for:
+means:
 
 ```text
-192.168.1.0/24
+IP:   192.168.1.10
+Mask: 255.255.255.0
 ```
 
-It is used to send traffic to all devices in the subnet.
+The first address in a subnet is the **network address**.
 
-It cannot be assigned to a device.
+The last address in a subnet is the **broadcast address**.
+
+Both cannot be assigned to devices.
 
 ---
 
-### Usable Host Range
+### Subnet Cheat Sheet
 
-The usable host range contains the IP addresses that can be assigned to devices.
+|  CIDR |  Dot-decimal Mask | Total IPs | Usable IPs |
+| ----: | ----------------: | --------: | ---------: |
+| `/32` | `255.255.255.255` |         1 |          0 |
+| `/31` | `255.255.255.254` |         2 |          0 |
+| `/30` | `255.255.255.252` |         4 |          2 |
+| `/29` | `255.255.255.248` |         8 |          6 |
+| `/28` | `255.255.255.240` |        16 |         14 |
+| `/27` | `255.255.255.224` |        32 |         30 |
+| `/26` | `255.255.255.192` |        64 |         62 |
+| `/25` | `255.255.255.128` |       128 |        126 |
+| `/24` |   `255.255.255.0` |       256 |        254 |
+| `/16` |     `255.255.0.0` |     65536 |      65534 |
+
+Example with `/30`:
+
+```text
+Network:   190.3.2.252
+Usable:    190.3.2.253
+Usable:    190.3.2.254
+Broadcast: 190.3.2.255
+```
+
+Only the usable IP addresses can be assigned to interfaces.
+
+---
+
+## Switches
+
+A switch connects multiple devices inside the same network.
+
+A switch does not separate networks.
+
+If several devices are connected to the same switch, they usually need to be in the same subnet.
 
 Example:
 
 ```text
-192.168.1.0/24
+Host A
+Host B
+Router interface
 ```
 
-Usable IP range:
-
-```text
-192.168.1.1 - 192.168.1.254
-```
+If all of them are connected to the same switch, they should share the same network.
 
 ---
 
-### Gateway
+## Routers
 
-A gateway is the next hop used to reach another network.
+A router connects different networks.
+
+A router can have multiple interfaces, and each interface usually belongs to a different subnet.
+
+Example:
+
+```text
+R1 interface 1 -> Network A
+R1 interface 2 -> Network B
+```
+
+The router can forward packets between these networks only if the routes are correct.
+
+A router does not magically know every network. It only knows:
+
+1. Networks directly connected to its own interfaces.
+2. Networks manually added in its routing table.
+
+---
+
+## Routing Tables
+
+A routing table tells a host or router where to send packets.
+
+In NetPractice, a route has two parts:
+
+```text
+Destination => Next hop
+```
+
+Example:
+
+```text
+192.168.2.0/24 => 192.168.1.1
+```
+
+Meaning:
+
+```text
+To reach 192.168.2.0/24, send the packet to 192.168.1.1.
+```
+
+The left side is the destination network.
+
+The right side is the next hop or gateway.
 
 Important rule:
 
@@ -178,44 +340,7 @@ Important rule:
 The gateway must be directly reachable.
 ```
 
-That means the gateway IP must be in the same subnet as the interface sending the packet.
-
-Example:
-
-```text
-Host:    192.168.1.10/24
-Gateway: 192.168.1.1
-```
-
-This is valid because both addresses are in:
-
-```text
-192.168.1.0/24
-```
-
----
-
-### Routing Table
-
-A routing table tells a device where to send traffic.
-
-A route has two sides:
-
-```text
-Destination => Gateway
-```
-
-Example:
-
-```text
-10.0.2.0/24 => 10.0.1.2
-```
-
-Meaning:
-
-```text
-To reach 10.0.2.0/24, send the packet to 10.0.1.2.
-```
+That means the gateway must be in the same subnet as one of the sender's interfaces.
 
 ---
 
@@ -226,16 +351,16 @@ A default route is used when no more specific route matches.
 It can be written as:
 
 ```text
-0.0.0.0/0
-```
-
-or sometimes:
-
-```text
 default
 ```
 
-It means:
+or:
+
+```text
+0.0.0.0/0
+```
+
+Both mean:
 
 ```text
 Any destination.
@@ -247,86 +372,106 @@ Example:
 0.0.0.0/0 => 192.168.1.1
 ```
 
----
+This means:
 
-### Switch
-
-A switch connects devices inside the same network.
-
-A switch does not separate networks.
-
-If devices are connected to the same switch, they usually need to be in the same subnet.
+```text
+Send all unknown traffic to 192.168.1.1.
+```
 
 ---
 
-### Router
+## Network Logic
 
-A router connects different networks.
+To know whether two devices are part of the same network, combine the IP address with the subnet mask.
 
-Each router interface usually belongs to a different subnet.
+This is done using a bit-by-bit AND operation.
 
-Routers need routes to reach networks that are not directly connected to them.
+Example:
+
+```text
+IP:   192.168.100.1
+Mask: 255.255.255.0
+```
+
+Binary:
+
+```text
+IP:   11000000.10101000.01100100.00000001
+Mask: 11111111.11111111.11111111.00000000
+```
+
+Result:
+
+```text
+11000000.10101000.01100100.00000000
+```
+
+In dot-decimal:
+
+```text
+192.168.100.0
+```
+
+So the network is:
+
+```text
+192.168.100.0/24
+```
+
+If two devices have the same network address, they are in the same network.
+
+If they are not in the same network, they need a router to communicate.
 
 ---
 
-## How I Solve NetPractice Levels
+## How I Approach NetPractice
 
-My method for solving NetPractice is:
+My solving process:
 
-1. Read the goal carefully.
+1. Read the goal.
 2. Identify which hosts need to communicate.
-3. Split the diagram into separate networks.
-4. Check which devices are directly connected.
-5. Make sure directly connected interfaces are in the same subnet.
-6. Avoid using network or broadcast addresses.
-7. Set host gateways to the nearest router interface.
+3. Split the topology into separate networks.
+4. Check all directly connected interfaces.
+5. Make sure devices on the same link are in the same subnet.
+6. Avoid network and broadcast addresses.
+7. Set host gateways to the nearest router.
 8. Add routes on routers for remote networks.
-9. Make sure the forward path works.
-10. Make sure the reverse path works.
-11. Read the logs and fix the first real error.
+9. Add reverse routes when the Internet is involved.
+10. Read the logs and fix the first real error.
 
-The most important idea is:
+The most important rule:
 
 ```text
-Do not guess. Split the topology into small networks first.
+Do not solve the whole diagram at once.
+Split it into small networks first.
 ```
 
 ---
 
-## Subnet Planning Cheat Sheet
+## Common Errors
 
-| Required Usable IPs | Best Subnet |       Subnet Mask |
-| ------------------: | ----------: | ----------------: |
-|                   2 |       `/30` | `255.255.255.252` |
-|               3 - 6 |       `/29` | `255.255.255.248` |
-|              7 - 14 |       `/28` | `255.255.255.240` |
-|             15 - 30 |       `/27` | `255.255.255.224` |
-|             31 - 62 |       `/26` | `255.255.255.192` |
-|            63 - 126 |       `/25` | `255.255.255.128` |
-|           127 - 254 |       `/24` |   `255.255.255.0` |
-
-### Quick Rule
-
-For a direct link between two devices:
-
-```text
-/30 is usually enough.
-```
-
-For a switch with multiple devices:
-
-```text
-Use a subnet large enough for all connected devices.
-```
+| Error                                      | Meaning                                       | Fix                                        |
+| ------------------------------------------ | --------------------------------------------- | ------------------------------------------ |
+| `invalid IP address`                       | The IP is a network or broadcast address      | Choose a usable IP                         |
+| `no route`                                 | A route is missing                            | Add a route to the destination network     |
+| `invalid route`                            | The gateway is not reachable                  | Use a gateway in the same subnet           |
+| `loop detected`                            | Traffic is being sent back and forth          | Fix wrong default routes                   |
+| `wrong host`                               | The IP exists on the wrong device             | Check duplicate IPs or overlapping subnets |
+| `no reverse way`                           | Forward path works but return path is missing | Add the return route                       |
+| `route match but no interface for gateway` | The gateway is not directly reachable         | Use the correct next hop                   |
 
 ---
 
-## Level Walkthroughs
+## Levels
+
+Here are the solutions and explanations for all 10 levels.
 
 ---
+
+## Level 1
 
 <details>
-<summary><strong>Level 1 - Direct Host-to-Host Communication</strong></summary>
+<summary><strong>show</strong></summary>
 
 <br>
 
@@ -334,52 +479,40 @@ Use a subnet large enough for all connected devices.
 
 ### Goal
 
-This level contains two direct communication goals:
-
-* Host A needs to communicate with Host B.
-* Host C needs to communicate with Host D.
-
-There are no routers in this level.
-
----
-
-### Network Analysis
-
-The topology has two separate direct connections:
+This level has two separate communication goals:
 
 ```text
 A <--> B
-
 C <--> D
 ```
 
-That means:
-
-* `A1` and `B1` must be in the same subnet.
-* `C1` and `D1` must be in the same subnet.
-
-Since there are no routers, no gateway is required.
+There are no routers.
 
 ---
 
-### Final Configuration
+### Explanation
 
-| Interface |       IP Address |     Subnet Mask |
-| --------- | ---------------: | --------------: |
-| A1        |   `104.95.23.11` | `255.255.255.0` |
-| B1        |   `104.95.23.12` | `255.255.255.0` |
-| C1        | `211.191.135.75` |   `255.255.0.0` |
-| D1        | `211.191.135.74` |   `255.255.0.0` |
+Each pair of hosts is directly connected.
+
+That means:
+
+```text
+A1 and B1 must be in the same subnet.
+C1 and D1 must be in the same subnet.
+```
+
+No gateway is needed because there is no router.
 
 ---
 
 ### Why It Works
 
-For A and B:
+For the first connection:
 
 ```text
-A1 = 104.95.23.11/24
-B1 = 104.95.23.12/24
+A1 = 104.95.23.11
+B1 = 104.95.23.12
+Mask = 255.255.255.0
 ```
 
 Both are inside:
@@ -388,11 +521,12 @@ Both are inside:
 104.95.23.0/24
 ```
 
-For C and D:
+For the second connection:
 
 ```text
-C1 = 211.191.135.75/16
-D1 = 211.191.135.74/16
+C1 = 211.191.135.75
+D1 = 211.191.135.74
+Mask = 255.255.0.0
 ```
 
 Both are inside:
@@ -401,70 +535,58 @@ Both are inside:
 211.191.0.0/16
 ```
 
-Because each pair is directly connected and belongs to the same subnet, communication works without a router.
+So both pairs can communicate directly.
 
 ---
 
 ### Key Takeaway
 
-Directly connected devices must be in the same subnet.
-
-No gateway is needed when there is no router.
+Directly connected devices must be part of the same subnet.
 
 ---
 
-### Configuration File
+### Solution File
 
-[`configs/level1.json`](configs/level1.json)
+[`solution/level1.json`](solution/level1.json)
 
 </details>
 
+[back to contents](#contents)
+
 ---
 
+## Level 2
+
 <details>
-<summary><strong>Level 2 - Basic Subnet Matching</strong></summary>
+<summary><strong>show</strong></summary>
 
 <br>
 
-<img src="screenshots/level2.png" alt="Level 2" width="900"/>
+<img src="img/level2.png" alt="Level 2" width="900"/>
 
 ### Goal
 
-The goal of this level is to make directly connected hosts communicate by correcting their IP addresses and subnet masks.
+This level focuses on making directly connected devices communicate by fixing IP addresses and subnet masks.
 
 ---
 
-### Network Analysis
+### Explanation
 
-This level focuses on checking whether two connected interfaces belong to the same subnet.
+When two interfaces are directly connected, they must belong to the same subnet.
 
-When two hosts are connected directly, they do not need a gateway.
-
-They only need:
-
-```text
-Valid IP addresses inside the same subnet.
-```
+A gateway is not needed unless the destination is outside the local network.
 
 ---
 
-### Solving Strategy
+### How to Think
 
-For every connected pair:
+For each connected pair:
 
-1. Look at the IP address.
-2. Look at the subnet mask.
-3. Calculate the network address.
-4. Make sure both interfaces are inside the same network.
-5. Make sure neither IP is a network address or broadcast address.
-
----
-
-### Why It Works
-
-The communication works when both interfaces agree on the same network range.
-
-If one device thinks the other device is outside the subnet, it will try to use a route or gateway, which is not needed in a direct connection.
+1. Read the IP address.
+2. Read the mask.
+3. Calculate the network.
+4. Make sure both interfaces belong to the same network.
+5. Make sure neither IP is the network address or broadcast address.
 
 ---
 
@@ -472,68 +594,60 @@ If one device thinks the other device is outside the subnet, it will try to use 
 
 The IP address alone is not enough.
 
-You always need:
+You must always check:
 
 ```text
-IP address + subnet mask
+IP + Mask
 ```
-
-to know whether two devices are in the same network.
 
 ---
 
-### Configuration File
+### Solution File
 
-[`configs/level2.json`](configs/level2.json)
+[`solution/level2.json`](solution/level2.json)
 
 </details>
 
+[back to contents](#contents)
+
 ---
 
+## Level 3
+
 <details>
-<summary><strong>Level 3 - Gateway Basics</strong></summary>
+<summary><strong>show</strong></summary>
 
 <br>
 
-<img src="screenshots/level3.png" alt="Level 3" width="900"/>
+<img src="img/level3.png" alt="Level 3" width="900"/>
 
 ### Goal
 
-This level introduces the idea of a gateway.
+This level introduces routing through a gateway.
 
-The host needs to communicate with another network through a router.
-
----
-
-### Network Analysis
-
-When a host wants to reach a destination outside its own subnet, it cannot send the packet directly.
-
-Instead, it sends the packet to its gateway.
-
-The gateway must be the router interface connected to the host network.
+A host needs to reach a network that is not directly connected.
 
 ---
 
-### Solving Strategy
+### Explanation
 
-For the host:
+When a host wants to reach another network, it must send the packet to a gateway.
+
+The gateway must be the router interface that is directly connected to the host's network.
+
+---
+
+### Correct Idea
 
 ```text
-0.0.0.0/0 => nearest router interface
+Host default route => nearest router interface
 ```
 
-The right side must be reachable from the host.
+Example:
 
-That means the gateway IP must be in the same subnet as the host interface.
-
----
-
-### Why It Works
-
-The host sends unknown traffic to the router.
-
-The router then forwards the packet toward the correct destination.
+```text
+0.0.0.0/0 => router interface IP
+```
 
 ---
 
@@ -542,135 +656,118 @@ The router then forwards the packet toward the correct destination.
 Wrong:
 
 ```text
-0.0.0.0/0 => destination host IP
+0.0.0.0/0 => final destination IP
 ```
 
 Correct:
 
 ```text
-0.0.0.0/0 => nearest router interface
+0.0.0.0/0 => next hop router
 ```
-
-The gateway is the next hop, not the final destination.
 
 ---
 
 ### Key Takeaway
 
-A gateway must be directly reachable.
+A gateway is the next hop, not the final destination.
 
 ---
 
-### Configuration File
+### Solution File
 
-[`configs/level3.json`](configs/level3.json)
+[`solution/level3.json`](solution/level3.json)
 
 </details>
 
+[back to contents](#contents)
+
 ---
 
+## Level 4
+
 <details>
-<summary><strong>Level 4 - Routing Table Basics</strong></summary>
+<summary><strong>show</strong></summary>
 
 <br>
 
-<img src="screenshots/level4.png" alt="Level 4" width="900"/>
+<img src="img/level4.png" alt="Level 4" width="900"/>
 
 ### Goal
 
-This level focuses on routing tables.
+This level focuses on router routing tables.
 
-A router must know how to forward traffic to a network that is not directly connected.
-
----
-
-### Network Analysis
-
-A router automatically knows the networks connected to its own interfaces.
-
-However, it does not automatically know remote networks.
-
-For remote networks, we must add routes manually.
+The router must know where to forward traffic for remote networks.
 
 ---
 
-### Solving Strategy
+### Explanation
+
+A router automatically knows only the networks directly connected to its own interfaces.
+
+For any remote network, a route must be added manually.
+
+---
+
+### How to Think
 
 For each router:
 
-1. Identify directly connected networks.
-2. Identify remote networks.
-3. Add routes only for networks that are not directly connected.
-4. Make sure the gateway is a directly reachable next hop.
-
----
-
-### Example
-
 ```text
-Remote network => next router interface
+What networks am I directly connected to?
+What networks are remote?
+Which next hop leads to those remote networks?
 ```
-
-Example:
-
-```text
-192.168.2.0/24 => 192.168.1.2
-```
-
----
-
-### Why It Works
-
-The router checks the destination IP against its routing table.
-
-If a matching route exists, the router forwards the packet to the next hop.
 
 ---
 
 ### Key Takeaway
 
-Routers need routes to reach networks that are not directly connected.
+Routers need routes for networks that are not directly connected.
 
 ---
 
-### Configuration File
+### Solution File
 
-[`configs/level4.json`](configs/level4.json)
+[`solution/level4.json`](solution/level4.json)
 
 </details>
 
+[back to contents](#contents)
+
 ---
 
+## Level 5
+
 <details>
-<summary><strong>Level 5 - Multiple Networks</strong></summary>
+<summary><strong>show</strong></summary>
 
 <br>
 
-<img src="screenshots/level5.png" alt="Level 5" width="900"/>
+<img src="img/level5.png" alt="Level 5" width="900"/>
 
 ### Goal
 
-This level contains multiple networks connected through routers.
+This level contains multiple networks.
 
-The goal is to correctly separate the topology into different subnets and configure routes between them.
+The goal is to correctly split the topology into separate subnets and connect them using routers.
 
 ---
 
-### Network Analysis
+### Explanation
 
-The most important step is to split the diagram into smaller networks.
-
-A common mistake is treating the whole diagram as one big network.
+The biggest mistake in this type of level is treating the whole diagram as one network.
 
 That is wrong.
+
+A router separates networks.
 
 Each router interface usually belongs to a different subnet.
 
 ---
 
-### Solving Strategy
+### How to Think
 
-I solve this type of level by writing the topology as small groups:
+Split the topology like this:
 
 ```text
 Network 1: Host + Router interface
@@ -678,89 +775,56 @@ Network 2: Router interface + Router interface
 Network 3: Router interface + Host
 ```
 
-Then I configure each group separately.
-
----
-
-### Why It Works
-
-Once each link has a valid subnet, routing becomes easier.
-
-Each host sends traffic to its nearest router.
-
-Each router forwards traffic based on its routing table.
+Solve each small network first, then configure routes.
 
 ---
 
 ### Key Takeaway
 
-Do not look at the full topology all at once.
+Do not start with routes.
 
-Split it into small networks first.
+First, identify the networks.
 
 ---
 
-### Configuration File
+### Solution File
 
-[`configs/level5.json`](configs/level5.json)
+[`solution/level5.json`](solution/level5.json)
 
 </details>
 
+[back to contents](#contents)
+
 ---
 
+## Level 6
+
 <details>
-<summary><strong>Level 6 - Internet and Reverse Routes</strong></summary>
+<summary><strong>show</strong></summary>
 
 <br>
 
-<img src="screenshots/level6.png" alt="Level 6" width="900"/>
+<img src="img/level6.png" alt="Level 6" width="900"/>
 
 ### Goal
 
-This level introduces communication with the Internet.
+This level introduces Internet communication.
 
-The local host must reach the Internet, and the Internet must be able to send traffic back.
-
----
-
-### Network Analysis
-
-The forward path is not enough.
-
-If a host can reach the Internet, the Internet must also have a route back to the host network.
-
-This is why reverse routes are important.
+The host must reach the Internet, and the Internet must know how to send traffic back.
 
 ---
 
-### Solving Strategy
+### Explanation
 
-For the local network:
+Forward traffic is not enough.
 
-```text
-Host => Router => Internet
-```
+If a packet goes from the host to the Internet, the reply must know how to return.
 
-For the reverse path:
-
-```text
-Internet => Router => Host
-```
-
-The Internet route should point back to the internal network through the router interface connected to the Internet.
+That is why the Internet box often needs a route back to the internal network.
 
 ---
 
-### Common Mistake
-
-Wrong:
-
-```text
-Internet route:
-163.172.250.12 => 163.172.250.12
-```
-
-Correct idea:
+### Correct Internet Route Idea
 
 ```text
 Internal network => router interface connected to Internet
@@ -776,38 +840,42 @@ Example:
 
 ### Key Takeaway
 
-When the goal includes the Internet, always check the reverse route.
+When the Internet is involved, always check the reverse path.
 
 ---
 
-### Configuration File
+### Solution File
 
-[`configs/level6.json`](configs/level6.json)
+[`solution/level6.json`](solution/level6.json)
 
 </details>
 
+[back to contents](#contents)
+
 ---
 
+## Level 7
+
 <details>
-<summary><strong>Level 7 - Router-to-Router Routing</strong></summary>
+<summary><strong>show</strong></summary>
 
 <br>
 
-<img src="screenshots/level7.png" alt="Level 7" width="900"/>
+<img src="img/level7.png" alt="Level 7" width="900"/>
 
 ### Goal
 
-This level requires communication across multiple routers.
+This level uses multiple routers.
 
-The goal is to make hosts communicate through a chain of routers.
+The goal is to make hosts communicate through a router-to-router path.
 
 ---
 
-### Network Analysis
+### Explanation
 
-A router-to-router link is usually a small point-to-point network.
+A link between two routers is usually a point-to-point network.
 
-For two router interfaces, a `/30` subnet is usually enough.
+For two devices, a `/30` subnet is usually enough.
 
 Example:
 
@@ -830,77 +898,67 @@ Usable IPs:
 
 ---
 
-### Solving Strategy
+### How to Think
 
-1. Assign a valid subnet to each link.
-2. Make sure router-to-router interfaces are in the same subnet.
-3. Add routes on each router for remote networks.
-4. Check both forward and reverse paths.
-
----
-
-### Why It Works
-
-Each router forwards the packet one step closer to the destination.
-
-The return traffic must also know how to go back.
+1. Make sure router-to-router interfaces are in the same subnet.
+2. Make sure each host has the correct gateway.
+3. Add routes for remote networks.
+4. Check the reverse path.
 
 ---
 
 ### Key Takeaway
 
-For router-to-router links, `/30` is usually the cleanest choice.
+For router-to-router links, `/30` is usually the cleanest subnet.
 
 ---
 
-### Configuration File
+### Solution File
 
-[`configs/level7.json`](configs/level7.json)
+[`solution/level7.json`](solution/level7.json)
 
 </details>
 
+[back to contents](#contents)
+
 ---
 
+## Level 8
+
 <details>
-<summary><strong>Level 8 - Forward and Reverse Path Troubleshooting</strong></summary>
+<summary><strong>show</strong></summary>
 
 <br>
 
-<img src="screenshots/level8.png" alt="Level 8" width="900"/>
+<img src="img/level8.png" alt="Level 8" width="900"/>
 
 ### Goal
 
-This level focuses heavily on troubleshooting routes.
-
-Some packets may reach the destination, but the response may fail.
+This level focuses on troubleshooting forward and reverse routes.
 
 ---
 
-### Network Analysis
+### Explanation
 
-If the status says:
+If the forward path works but the reverse path does not, NetPractice may show:
 
 ```text
 No reverse way
 ```
 
-that means the forward path works, but the return path is missing or wrong.
-
-If the status says:
+If traffic keeps moving between the same devices, it may show:
 
 ```text
 Loop detected
 ```
 
-that means packets are being sent back and forth between devices.
-
 ---
 
-### Solving Strategy
+### How to Debug
 
-I use the logs to find the first real error.
+Read the log and find the first real routing error.
 
-Important log messages:
+Important messages:
 
 ```text
 destination does not match any route
@@ -909,61 +967,55 @@ route match but no interface for gateway
 loop detected
 ```
 
-These messages usually point directly to the wrong route or gateway.
-
----
-
-### Why It Works
-
-By fixing the first real error in the log, the network becomes easier to debug.
-
-Fixing random values usually creates more problems.
+These messages usually point to the wrong route or gateway.
 
 ---
 
 ### Key Takeaway
 
-Read the logs carefully.
+Do not randomly change IPs.
 
-They usually tell you exactly where the routing problem starts.
+Use the log to find where the packet fails.
 
 ---
 
-### Configuration File
+### Solution File
 
-[`configs/level8.json`](configs/level8.json)
+[`solution/level8.json`](solution/level8.json)
 
 </details>
 
+[back to contents](#contents)
+
 ---
 
+## Level 9
+
 <details>
-<summary><strong>Level 9 - Complex Routing</strong></summary>
+<summary><strong>show</strong></summary>
 
 <br>
 
-<img src="screenshots/level9.png" alt="Level 9" width="900"/>
+<img src="img/level9.png" alt="Level 9" width="900"/>
 
 ### Goal
 
-This level combines multiple hosts, switches, routers, and Internet routes.
+This level combines several concepts:
 
-The goal is to make several networks communicate correctly.
+```text
+Hosts
+Switches
+Routers
+Multiple subnets
+Internet routes
+Reverse paths
+```
 
 ---
 
-### Network Analysis
+### Explanation
 
-This level should be solved by grouping the topology into separate networks.
-
-Example structure:
-
-```text
-Network 1: hosts connected to a switch
-Network 2: router-to-router link
-Network 3: host network behind router
-Network 4: Internet link
-```
+For larger levels, the correct approach is to split the diagram into separate networks.
 
 A switch keeps devices in the same network.
 
@@ -971,176 +1023,117 @@ A router separates networks.
 
 ---
 
-### Solving Strategy
+### How to Think
 
-For every network:
+For every section:
 
 1. Count the required usable IP addresses.
-2. Choose the smallest valid subnet.
-3. Assign valid usable IP addresses.
+2. Choose a subnet that fits.
+3. Assign valid IPs.
 4. Avoid network and broadcast addresses.
-5. Add routes between routers.
-6. Add Internet reverse routes.
-
----
-
-### Why It Works
-
-The solution works when every device knows where to send the packet and where to send the reply.
-
-For complex levels, reverse routes become just as important as forward routes.
+5. Configure host gateways.
+6. Configure router routes.
+7. Configure Internet reverse routes.
 
 ---
 
 ### Key Takeaway
 
-In large topologies, the first step is always subnet separation.
+In complex topologies, subnet separation is the first step.
 
-Do not start with routes before identifying the networks.
+Routes come after that.
 
 ---
 
-### Configuration File
+### Solution File
 
-[`configs/level9.json`](configs/level9.json)
+[`solution/level9.json`](solution/level9.json)
 
 </details>
 
+[back to contents](#contents)
+
 ---
 
+## Level 10
+
 <details>
-<summary><strong>Level 10 - Full Network Troubleshooting</strong></summary>
+<summary><strong>show</strong></summary>
 
 <br>
 
-<img src="screenshots/level10.png" alt="Level 10" width="900"/>
+<img src="img/level10.png" alt="Level 10" width="900"/>
 
 ### Goal
 
 This is the final NetPractice level.
 
-It combines all the important concepts:
-
-* Direct host communication
-* Switch-based networks
-* Router-to-router links
-* Multiple subnets
-* Default gateways
-* Routing tables
-* Internet reverse routes
-* Troubleshooting logs
-
----
-
-### Network Analysis
-
-The topology contains several internal networks and an Internet connection.
-
-To solve it correctly, each part must be separated:
+It combines everything:
 
 ```text
-Hosts on the same switch => same subnet
-Router-to-router link => separate subnet
-Hosts behind a router => separate subnet
-Internet link => separate subnet
+Direct communication
+Switch networks
+Router-to-router links
+Subnetting
+Default gateways
+Routing tables
+Internet reverse routes
+Log debugging
 ```
 
 ---
 
-### Solving Strategy
+### Explanation
 
-I solved this level by following this order:
+The final level should be solved step by step.
 
-1. Fix directly connected hosts first.
-2. Fix switch networks.
-3. Fix router-to-router links.
-4. Configure host gateways.
-5. Configure router routes.
-6. Configure Internet reverse routes.
-7. Read logs and fix one error at a time.
+Do not try to solve the whole diagram at once.
+
+Start with the directly connected hosts, then move to switches, routers, and finally the Internet routes.
 
 ---
 
-### Why It Works
+### Solving Order
 
-The final configuration works because every network has:
-
-* Valid IP addresses
-* Correct subnet masks
-* Reachable gateways
-* Correct forward routes
-* Correct reverse routes
-
-No packet is sent to an unreachable gateway, and no route sends traffic in a loop.
+```text
+1. Direct host communication
+2. Switch networks
+3. Router-to-router links
+4. Host gateways
+5. Router routes
+6. Internet reverse routes
+7. Logs and final debugging
+```
 
 ---
 
 ### Key Takeaway
 
-The final level is not solved by guessing.
+Level 10 is not hard because of one complex idea.
 
-It is solved by breaking the topology into small networks and validating each path step by step.
+It is hard because it combines many simple ideas at the same time.
 
 ---
 
-### Configuration File
+### Solution File
 
-[`configs/level10.json`](configs/level10.json)
+[`solution/level10.json`](solution/level10.json)
 
 </details>
 
----
-
-## Common NetPractice Errors
-
-| Error                                      | Meaning                                                 | How to Fix                                                |
-| ------------------------------------------ | ------------------------------------------------------- | --------------------------------------------------------- |
-| `invalid IP address`                       | The IP is probably a network or broadcast address       | Recalculate the subnet and choose a usable IP             |
-| `no route`                                 | A route is missing                                      | Add a route to the destination network                    |
-| `invalid route`                            | The gateway is not reachable                            | Make sure the gateway is in the same subnet as the sender |
-| `loop detected`                            | Traffic is being sent back and forth                    | Check default routes and router routes                    |
-| `wrong host`                               | The packet reached the right IP but on the wrong device | Check for duplicate IPs or overlapping subnets            |
-| `no reverse way`                           | Forward path works but return path is missing           | Add a reverse route                                       |
-| `route match but no interface for gateway` | The route points to a gateway the device cannot reach   | Replace the gateway with a directly connected next hop    |
-
----
-
-## Important Rules
-
-* A switch does not separate networks.
-* A router separates networks.
-* Every router interface usually belongs to a different subnet.
-* The gateway must be directly reachable.
-* The right side of a route must be a gateway IP.
-* The left side of a route must be a destination network.
-* `0.0.0.0/0` means any destination.
-* Network addresses cannot be assigned to devices.
-* Broadcast addresses cannot be assigned to devices.
-* Communication needs both a forward path and a reverse path.
-
----
-
-## Best Practices
-
-* Use `/30` for point-to-point links.
-* Use the smallest subnet that fits the number of devices.
-* Do not waste IP addresses when a smaller subnet is enough.
-* Do not use a default route when a specific route is required.
-* Do not create multiple default routes unless you fully understand the effect.
-* Always check the first real error in the log.
-* Do not fix random values without understanding the topology.
+[back to contents](#contents)
 
 ---
 
 ## 42 Note
 
-This repository is intended for learning, review, and documentation.
+This repository is for learning, review, and documentation.
 
 If you are a 42 student working on NetPractice, try to solve each level by yourself first.
 
 Do not copy the configurations blindly.
 
-The real goal of NetPractice is to understand how IP addressing, subnetting, routing, and gateways work.
+The real goal of NetPractice is to understand how IP addressing, subnetting, gateways, and routing tables work.
 
 ---
 
