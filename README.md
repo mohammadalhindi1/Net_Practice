@@ -2063,244 +2063,58 @@ First split the topology into separate networks.
 
 ### Goal
 
-This level has three communication goals:
+This level has three goals:
 
 ```text
 C <--> D
-C <--> Somewhere on the Net
-D <--> Somewhere on the Net
+C <--> Internet
+D <--> Internet
 ```
 
-Hosts `C` and `D` must communicate with each other, and both of them must also reach the Internet.
+Hosts `C` and `D` must communicate with each other, and both hosts must also reach the Internet.
 
 ---
 
-### Network Topology
+### Topology
 
 The topology can be simplified like this:
 
 ```text
-C <--> R2 <--> R1 <--> Internet
-       |
-       D
+C ----\
+       R2 ---- R1 ---- Internet
+D ----/
 ```
 
-More precisely, the network is split into these parts:
+The network is split into four main parts:
 
 ```text
-Network 1: C + R2
-Network 2: D + R2
-Network 3: R2 + R1
-Network 4: R1 + Internet
+C + R2
+D + R2
+R2 + R1
+R1 + Internet
 ```
-
-This level is mainly about routing traffic from internal networks to the Internet and making sure the Internet can return the traffic correctly.
 
 ---
 
-### Network Analysis
+### Main Idea
 
-Host `C` is connected to router `R2`.
+`C` and `D` are not directly connected to the Internet.
 
-From the log:
+They both use `R2` as their gateway.
 
-```text
-C sends to gateway 128.24.243.1 through interface C1
-```
+Then `R2` forwards traffic to `R1`.
 
-So `C` uses `R2` as its gateway.
+Finally, `R1` forwards traffic to the Internet.
 
-Host `D` is also connected to router `R2`.
-
-From the log:
-
-```text
-D sends to gateway 128.24.243.25 through interface D1
-```
-
-So `D` also uses `R2` as its gateway, but through a different router interface.
-
-Then `R2` sends traffic upward to `R1`:
-
-```text
-R2 sends to gateway 128.24.243.62 through interface R21
-```
-
-Finally, `R1` sends traffic to the Internet:
-
-```text
-R1 sends to gateway 163.225.250.1 through interface R12
-```
-
-So the Internet path is:
+The main path is:
 
 ```text
 C/D -> R2 -> R1 -> Internet
 ```
 
----
+For the return traffic, the Internet must know how to reach the internal network.
 
-### Goal 1: C to D
-
-The first goal is local internal routing between `C` and `D`.
-
-Forward path:
-
-```text
-C -> R2 -> D
-```
-
-From the log:
-
-```text
-Forward way: C -> D
-on C: route match 0.0.0.0/0
-on C: send to gateway 128.24.243.1 through interface C1
-on R2: send to R23
-on D: destination IP reached
-```
-
-Reverse path:
-
-```text
-D -> R2 -> C
-```
-
-From the log:
-
-```text
-Reverse way: D -> C
-on D: route match default
-on D: send to gateway 128.24.243.25 through interface D1
-on R2: send to R22
-on C: destination IP reached
-```
-
-This works because both hosts use `R2` as their gateway.
-
----
-
-### Goal 2: C to Internet
-
-The forward path from `C` to the Internet is:
-
-```text
-C -> R2 -> R1 -> Internet
-```
-
-From the log:
-
-```text
-on C: send to gateway 128.24.243.1 through interface C1
-on R2: send to gateway 128.24.243.62 through interface R21
-on R1: send to gateway 163.225.250.1 through interface R12
-on I: destination IP reached
-```
-
-This confirms that the forward route works.
-
-The reverse path is:
-
-```text
-Internet -> R1 -> R2 -> C
-```
-
-From the log:
-
-```text
-on I: route match 128.24.243.0/26
-on I: send to gateway 163.225.250.12 through interface I1
-on R1: send to gateway 128.24.243.61 through interface R13
-on R2: send to R22
-on C: destination IP reached
-```
-
-This means the Internet has a route back to the internal network.
-
----
-
-### Goal 3: D to Internet
-
-The forward path from `D` to the Internet is:
-
-```text
-D -> R2 -> R1 -> Internet
-```
-
-From the log:
-
-```text
-on D: send to gateway 128.24.243.25 through interface D1
-on R2: send to gateway 128.24.243.62 through interface R21
-on R1: send to gateway 163.225.250.1 through interface R12
-on I: destination IP reached
-```
-
-The reverse path is:
-
-```text
-Internet -> R1 -> R2 -> D
-```
-
-From the log:
-
-```text
-on I: route match 128.24.243.0/26
-on I: send to gateway 163.225.250.12 through interface I1
-on R1: send to gateway 128.24.243.61 through interface R13
-on R2: send to R23
-on D: destination IP reached
-```
-
-This confirms that Internet replies can return to both internal hosts.
-
----
-
-### Why the Internet Route Is Important
-
-The Internet must know how to return traffic to the internal network.
-
-In this level, the Internet route matches:
-
-```text
-128.24.243.0/26
-```
-
-and sends the packet to:
-
-```text
-163.225.250.12
-```
-
-That IP is the router interface connected to the Internet side.
-
-The idea is:
-
-```text
-Internal network => R1 interface connected to Internet
-```
-
-Without this route, the forward path may reach the Internet, but the reverse path would fail with:
-
-```text
-No reverse way
-```
-
----
-
-### Why R1 Needs a Route Back to R2
-
-When the Internet sends the packet back to `R1`, `R1` must know that the internal hosts are behind `R2`.
-
-From the log:
-
-```text
-on R1: send to gateway 128.24.243.61 through interface R13
-```
-
-That means `R1` sends internal traffic back to `R2`.
-
-So the return path becomes:
+So the reverse path is:
 
 ```text
 Internet -> R1 -> R2 -> C/D
@@ -2308,60 +2122,72 @@ Internet -> R1 -> R2 -> C/D
 
 ---
 
-### Final Result
+### Important Routes
 
-All goals work:
+Host `C` sends traffic to:
 
 ```text
-C -> D        : OK
-C -> Internet : OK
-D -> Internet : OK
+128.24.243.1
 ```
 
-And all reverse paths work:
+Host `D` sends traffic to:
 
 ```text
-D -> C        : OK
-Internet -> C : OK
-Internet -> D : OK
+128.24.243.25
+```
+
+Router `R2` sends Internet traffic to `R1`:
+
+```text
+128.24.243.62
+```
+
+Router `R1` sends Internet traffic to:
+
+```text
+163.225.250.1
+```
+
+The Internet sends replies back through:
+
+```text
+163.225.250.12
+```
+
+---
+
+### Packet Paths
+
+Internal communication:
+
+```text
+C -> R2 -> D
+D -> R2 -> C
+```
+
+Internet communication:
+
+```text
+C -> R2 -> R1 -> Internet
+D -> R2 -> R1 -> Internet
+```
+
+Reverse Internet communication:
+
+```text
+Internet -> R1 -> R2 -> C
+Internet -> R1 -> R2 -> D
 ```
 
 ---
 
 ### Key Takeaway
 
-This level is about complete routing, not just forward routing.
+This level is about complete routing.
 
-For Internet communication, the network needs:
+Forward routing alone is not enough.
 
-```text
-1. Host default gateways
-2. R2 route toward R1
-3. R1 default route toward Internet
-4. Internet reverse route toward the internal network
-5. R1 route back toward R2
-```
-
-Every step must work in both directions.
-
----
-
-### Best Practice
-
-For levels with Internet and multiple routers, solve in this order:
-
-```text
-1. Make C reach D internally.
-2. Make C and D reach R2.
-3. Make R2 reach R1.
-4. Make R1 reach the Internet.
-5. Add the Internet reverse route.
-6. Check that R1 sends returning traffic back to R2.
-```
-
-Do not stop when the forward path reaches the Internet.
-
-Always verify the reverse path.
+The reverse path must also work, especially when the Internet is involved.
 
 ---
 
