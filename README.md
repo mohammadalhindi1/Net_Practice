@@ -330,7 +330,7 @@ Use a subnet large enough for all connected devices.
 
 <br>
 
-<img src="screenshots/level1.png" alt="Level 1" width="900"/>
+<img src="img/level1.png" alt="Level 1" width="900"/>
 
 ### Goal
 
