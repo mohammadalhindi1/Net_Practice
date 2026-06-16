@@ -830,6 +830,8 @@ A `/29` or larger subnet would work because `/29` gives six usable IP addresses.
 
 ## Level 4
 
+## Level 4
+
 <details>
 <summary><strong>show</strong></summary>
 
@@ -839,35 +841,184 @@ A `/29` or larger subnet would work because `/29` gives six usable IP addresses.
 
 ### Goal
 
-This level focuses on router routing tables.
+This level has three communication goals:
 
-The router must know where to forward traffic for remote networks.
+```text id="vu9jqx"
+A <--> B
+A <--> R
+B <--> R
+```
 
----
-
-### Explanation
-
-A router automatically knows only the networks directly connected to its own interfaces.
-
-For any remote network, a route must be added manually.
+Hosts `A` and `B` are connected to the same switch as router `R`.
 
 ---
 
-### How to Think
+### Network Topology
 
-For each router:
+The topology can be simplified like this:
 
-```text
-What networks am I directly connected to?
-What networks are remote?
-Which next hop leads to those remote networks?
+```text id="jeagfo"
+        Switch S
+       /   |   \
+      A    B    R
+```
+
+There is one switch and one router interface connected to that switch.
+
+Even though a router exists in the level, the communication goals are still inside the same local network.
+
+---
+
+### Network Analysis
+
+A switch connects devices inside the same network.
+
+In this level, the devices connected to the switch are:
+
+```text id="av0mah"
+A
+B
+R
+```
+
+So the interfaces of these devices must belong to the same subnet.
+
+From the successful log, the important IP addresses are:
+
+```text id="4ix0i8"
+A = 90.242.111.132
+B = 90.242.111.131
+R = 90.242.111.130
+```
+
+All of them are in the same IP range:
+
+```text id="kedrlu"
+90.242.111.x
+```
+
+So they can communicate through the switch.
+
+---
+
+### Router Role in This Level
+
+The router `R` is present, but it is not used to route traffic between different networks in this level.
+
+Here, `R` behaves like another device connected to the same switch.
+
+That means `A`, `B`, and `R` must all be in the same subnet.
+
+No extra routing table configuration is needed for these goals.
+
+---
+
+### Understanding the Log
+
+Example from Goal 2:
+
+```text id="92tpbo"
+Forward way: A -> R
+on A: packet accepted
+on A: send to A1
+on switch S: pass to all connections
+on R: packet accepted
+on R: destination IP reached
+```
+
+This means:
+
+1. Host A accepted the packet.
+2. A sent the packet through interface `A1`.
+3. The switch forwarded the packet.
+4. Router R received the packet.
+5. The destination was reached successfully.
+
+---
+
+### Why `packet not for me` Appears
+
+The log contains lines like:
+
+```text id="x8dozy"
+on R: packet not for me
+```
+
+or:
+
+```text id="q5hu1u"
+on A: packet not for me
+```
+
+This happens because the switch forwards traffic to connected links.
+
+If a device receives a packet that is not addressed to its own IP, it ignores it.
+
+This is normal in this level.
+
+---
+
+### Why `loop detected` Appears
+
+The log also contains:
+
+```text id="wegg0n"
+loop detected
+```
+
+In this level, the final result is still correct because the destination is reached.
+
+The switch tests multiple links, including the link back toward the sender.
+
+As long as NetPractice shows `OK` and the destination is reached, this message is not the main issue here.
+
+---
+
+### Final Result
+
+All goals work:
+
+```text id="8p3rpe"
+A -> B : OK
+A -> R : OK
+B -> R : OK
+```
+
+The reverse paths also work:
+
+```text id="6pwdri"
+B -> A : OK
+R -> A : OK
+R -> B : OK
 ```
 
 ---
 
 ### Key Takeaway
 
-Routers need routes for networks that are not directly connected.
+A router interface connected to a switch must be in the same subnet as the other devices on that switch.
+
+The router only becomes useful for routing when traffic needs to leave this local network.
+
+---
+
+### Best Practice
+
+When a switch connects multiple devices, count how many usable IP addresses are needed.
+
+In this level, the switch connects three interfaces:
+
+```text id="y8e0xh"
+A1
+B1
+R1
+```
+
+So the subnet must provide at least three usable IP addresses.
+
+A `/30` is not enough because it provides only two usable IP addresses.
+
+A `/29` or larger subnet would be enough.
 
 ---
 
@@ -883,6 +1034,8 @@ Routers need routes for networks that are not directly connected.
 
 ## Level 5
 
+## Level 5
+
 <details>
 <summary><strong>show</strong></summary>
 
@@ -892,43 +1045,208 @@ Routers need routes for networks that are not directly connected.
 
 ### Goal
 
-This level contains multiple networks.
+This level has three communication goals:
 
-The goal is to correctly split the topology into separate subnets and connect them using routers.
-
----
-
-### Explanation
-
-The biggest mistake in this type of level is treating the whole diagram as one network.
-
-That is wrong.
-
-A router separates networks.
-
-Each router interface usually belongs to a different subnet.
-
----
-
-### How to Think
-
-Split the topology like this:
-
-```text
-Network 1: Host + Router interface
-Network 2: Router interface + Router interface
-Network 3: Router interface + Host
+```text id="hmhnr1"
+A <--> R
+B <--> R
+A <--> B
 ```
 
-Solve each small network first, then configure routes.
+There is one router between two different host networks.
+
+---
+
+### Network Topology
+
+The topology can be simplified like this:
+
+```text id="g5t8f2"
+A <--> R <--> B
+```
+
+Router `R` has two interfaces:
+
+```text id="mp84zg"
+R1 connected to A
+R2 connected to B
+```
+
+This means there are two separate networks:
+
+```text id="bqxqrn"
+Network 1: A + R1
+Network 2: B + R2
+```
+
+---
+
+### Network Analysis
+
+Host `A` and router interface `R1` are directly connected.
+
+From the log:
+
+```text id="8h9tgm"
+A = 57.202.124.125
+R1 = 57.202.124.126
+```
+
+So `A` and `R1` must be in the same subnet.
+
+Host `B` and router interface `R2` are also directly connected.
+
+From the log:
+
+```text id="gal1xe"
+B  = 135.233.22.253
+R2 = 135.233.22.254
+```
+
+So `B` and `R2` must be in the same subnet.
+
+---
+
+### Why Gateways Are Needed
+
+For Goal 1:
+
+```text id="apdjz5"
+A -> R
+```
+
+A can reach R directly through `R1`.
+
+For Goal 2:
+
+```text id="q9omj6"
+B -> R
+```
+
+B can reach R directly through `R2`.
+
+But for Goal 3:
+
+```text id="udpdvi"
+A -> B
+```
+
+A and B are not in the same network.
+
+So A must send the packet to its gateway, which is router `R`.
+
+The same applies in the reverse direction:
+
+```text id="wc4hy0"
+B -> A
+```
+
+B must send the packet to router `R`.
+
+---
+
+### Understanding the Log
+
+From Goal 3:
+
+```text id="hsyaio"
+Forward way: A -> B
+on A: destination does not match any interface
+on A: route match 0.0.0.0/0
+on A: send to gateway 57.202.124.126 through interface A1
+on R: packet accepted
+on R: send to R2
+on B: destination IP reached
+```
+
+This shows the correct path:
+
+```text id="mms1vl"
+A -> R -> B
+```
+
+A does not know B directly, so it sends the packet to its gateway:
+
+```text id="13i3qs"
+57.202.124.126
+```
+
+That gateway is router interface `R1`.
+
+Then the router forwards the packet through `R2` to B.
+
+---
+
+### Reverse Path
+
+The reverse path is also correct:
+
+```text id="nlqg48"
+B -> R -> A
+```
+
+From the log:
+
+```text id="x3lcmh"
+on B: route match default
+on B: send to gateway 135.233.22.254 through interface B1
+on R: packet accepted
+on R: send to R1
+on A: destination IP reached
+```
+
+B sends traffic to its gateway:
+
+```text id="wc3k45"
+135.233.22.254
+```
+
+That gateway is router interface `R2`.
+
+The router then forwards the packet back through `R1` to A.
+
+---
+
+### Final Result
+
+All goals work:
+
+```text id="34lra9"
+A -> R : OK
+B -> R : OK
+A -> B : OK
+```
+
+And the reverse paths also work:
+
+```text id="0deaua"
+R -> A : OK
+R -> B : OK
+B -> A : OK
+```
 
 ---
 
 ### Key Takeaway
 
-Do not start with routes.
+When two hosts are in different networks, they need a router between them.
 
-First, identify the networks.
+Each host should use the router interface connected to its own network as its gateway.
+
+---
+
+### Best Practice
+
+For two-device links, use the smallest subnet that fits two usable IP addresses.
+
+A `/30` is usually enough for:
+
+```text id="z3no62"
+A <--> R
+B <--> R
+```
+
+because `/30` gives exactly two usable IP addresses.
 
 ---
 
@@ -944,6 +1262,8 @@ First, identify the networks.
 
 ## Level 6
 
+## Level 6
+
 <details>
 <summary><strong>show</strong></summary>
 
@@ -953,39 +1273,227 @@ First, identify the networks.
 
 ### Goal
 
-This level introduces Internet communication.
-
-The host must reach the Internet, and the Internet must know how to send traffic back.
-
----
-
-### Explanation
-
-Forward traffic is not enough.
-
-If a packet goes from the host to the Internet, the reply must know how to return.
-
-That is why the Internet box often needs a route back to the internal network.
-
----
-
-### Correct Internet Route Idea
+This level has one main communication goal:
 
 ```text
-Internal network => router interface connected to Internet
+A <--> Somewhere on the Net
 ```
 
-Example:
+Host `A` must be able to reach the Internet, and the Internet must be able to send the response back to `A`.
+
+---
+
+### Network Topology
+
+The topology can be simplified like this:
 
 ```text
-192.168.1.0/24 => 163.172.250.12
+A --- Switch S --- R --- Internet
+```
+
+Router `R` has two sides:
+
+```text
+R1 connected to A through the switch
+R2 connected to the Internet
+```
+
+So we have two main networks:
+
+```text
+Network 1: A + R1
+Network 2: R2 + Internet
+```
+
+---
+
+### Network Analysis
+
+Host `A` is not directly connected to the Internet.
+
+So when `A` wants to reach an outside destination, such as:
+
+```text
+8.8.8.8
+```
+
+it must send the packet to its gateway.
+
+From the log:
+
+```text
+A sends to gateway 28.219.87.228 through interface A1
+```
+
+That means:
+
+```text
+A gateway = 28.219.87.228
+```
+
+This gateway is router `R` on the local network side.
+
+---
+
+### Forward Path
+
+The forward path is:
+
+```text
+A -> R -> Internet
+```
+
+From the log:
+
+```text
+on A: route match 0.0.0.0/0
+on A: send to gateway 28.219.87.228 through interface A1
+on R: route match 0.0.0.0/0
+on R: send to gateway 163.172.250.1 through interface R2
+on I: destination IP reached
+```
+
+This means:
+
+1. `A` does not have the Internet network directly connected.
+2. `A` uses its default route.
+3. `A` sends the packet to router `R`.
+4. `R` also uses its default route.
+5. `R` sends the packet to the Internet gateway.
+6. The Internet destination is reached.
+
+---
+
+### Reverse Path
+
+The reverse path is:
+
+```text
+Internet -> R -> A
+```
+
+From the log:
+
+```text
+Reverse way: Somewhere on the Net -> A
+on I: route match 28.219.87.228/29
+on I: send to gateway 163.172.250.12 through interface I1
+on R: send to R1
+on A: destination IP reached
+```
+
+This shows that the Internet side has a route back to the internal network.
+
+The important idea is:
+
+```text
+The Internet must know how to return traffic to A.
+```
+
+Without this reverse route, the forward path may work, but the level would fail with:
+
+```text
+No reverse way
+```
+
+---
+
+### Why the Internet Route Matters
+
+When `A` sends traffic to the Internet, the reply destination becomes `A`.
+
+In this level, the reply goes back to:
+
+```text
+28.219.87.227
+```
+
+So the Internet box needs a route that points back toward the internal network through router `R`.
+
+The route idea is:
+
+```text
+A network => R interface connected to Internet
+```
+
+From the log, the Internet sends the packet to:
+
+```text
+163.172.250.12
+```
+
+That is the router interface connected to the Internet side.
+
+---
+
+### Why `loop detected` Appears
+
+The log contains:
+
+```text
+on A: loop detected
+```
+
+and:
+
+```text
+on R: loop detected
+```
+
+In this level, this is not the actual problem because the packet still reaches the destination.
+
+The switch tests multiple connected links, including the sender side.
+
+The important line is:
+
+```text
+destination IP reached
+```
+
+As long as both the forward path and reverse path reach the destination, the level is correct.
+
+---
+
+### Final Result
+
+The communication works in both directions:
+
+```text
+A -> Internet : OK
+Internet -> A : OK
 ```
 
 ---
 
 ### Key Takeaway
 
-When the Internet is involved, always check the reverse path.
+When the Internet is involved, always check two things:
+
+```text
+1. The host has a default route to the router.
+2. The Internet has a reverse route back to the host network.
+```
+
+Forward traffic alone is not enough.
+
+The return path must also be valid.
+
+---
+
+### Best Practice
+
+For Internet levels, debug in this order:
+
+```text
+1. Check the host gateway.
+2. Check the router default route to the Internet.
+3. Check the Internet reverse route.
+4. Make sure every gateway is directly reachable.
+```
+
+Do not only check the forward path.
+
+Most Internet-level mistakes happen because the reverse route is missing or points to the wrong gateway.
 
 ---
 
@@ -1001,6 +1509,8 @@ When the Internet is involved, always check the reverse path.
 
 ## Level 7
 
+## Level 7
+
 <details>
 <summary><strong>show</strong></summary>
 
@@ -1010,51 +1520,209 @@ When the Internet is involved, always check the reverse path.
 
 ### Goal
 
-This level uses multiple routers.
+This level has one main communication goal:
 
-The goal is to make hosts communicate through a router-to-router path.
+```text
+A <--> C
+```
+
+Host `A` must communicate with host `C` through two routers.
 
 ---
 
-### Explanation
+### Network Topology
 
-A link between two routers is usually a point-to-point network.
-
-For two devices, a `/30` subnet is usually enough.
-
-Example:
+The topology can be simplified like this:
 
 ```text
-Router 1 <--> Router 2
+A <--> R1 <--> R2 <--> C
 ```
 
-Possible subnet:
+There are three separate networks:
 
 ```text
-10.0.0.0/30
+Network 1: A + R1
+Network 2: R1 + R2
+Network 3: R2 + C
 ```
 
-Usable IPs:
+This is the first level where the path clearly goes through multiple routers.
+
+---
+
+### Network Analysis
+
+Host `A` is not directly connected to host `C`.
+
+So `A` must send the packet to its nearest router, which is `R1`.
+
+From the log:
 
 ```text
-10.0.0.1
-10.0.0.2
+A sends to gateway 107.198.14.1 through interface A1
+```
+
+So the first hop is:
+
+```text
+A -> R1
+```
+
+Then `R1` forwards the packet to `R2`.
+
+From the log:
+
+```text
+R1 sends to gateway 107.198.14.253 through interface R12
+```
+
+Then `R2` forwards the packet to host `C`.
+
+From the log:
+
+```text
+R2 sends to R22
+C receives the packet
+destination IP reached
+```
+
+So the complete forward path is:
+
+```text
+A -> R1 -> R2 -> C
 ```
 
 ---
 
-### How to Think
+### Forward Path
 
-1. Make sure router-to-router interfaces are in the same subnet.
-2. Make sure each host has the correct gateway.
-3. Add routes for remote networks.
-4. Check the reverse path.
+The forward path from `A` to `C` is:
+
+```text
+A -> R1 -> R2 -> C
+```
+
+From the log:
+
+```text
+Forward way: A -> C
+on A: route match 0.0.0.0/0
+on A: send to gateway 107.198.14.1 through interface A1
+on R1: route match 0.0.0.0/0
+on R1: send to gateway 107.198.14.253 through interface R12
+on R2: send to R22
+on C: destination IP reached
+```
+
+This shows that:
+
+1. `A` does not know `C` directly.
+2. `A` sends traffic to its default gateway, `R1`.
+3. `R1` forwards the packet to `R2`.
+4. `R2` delivers the packet to `C`.
+
+---
+
+### Reverse Path
+
+The reverse path from `C` back to `A` is:
+
+```text
+C -> R2 -> R1 -> A
+```
+
+From the log:
+
+```text
+Reverse way: C -> A
+on C: route match 0.0.0.0/0
+on C: send to gateway 107.198.14.5 through interface C1
+on R2: route match 0.0.0.0/0
+on R2: send to gateway 107.198.14.254 through interface R21
+on R1: send to R11
+on A: destination IP reached
+```
+
+This confirms that the return route is also correct.
+
+The packet does not only need a way to reach `C`; it also needs a valid path back to `A`.
+
+---
+
+### Router-to-Router Link
+
+The middle network is the connection between `R1` and `R2`.
+
+From the log, the router-to-router communication uses:
+
+```text
+R1 sends to 107.198.14.253
+R2 sends back to 107.198.14.254
+```
+
+This means the interfaces between `R1` and `R2` must be in the same subnet.
+
+A router-to-router link is usually a point-to-point network, so a small subnet like `/30` is usually enough.
+
+---
+
+### Why Default Routes Work Here
+
+In this level, the path is linear:
+
+```text
+A -> R1 -> R2 -> C
+```
+
+There is only one direction to go from each host or router toward the remote network.
+
+That is why default routes can work well here:
+
+```text
+0.0.0.0/0 => next router
+```
+
+But the default route must point to the correct next hop.
+
+Wrong default routes can easily create loops.
+
+---
+
+### Final Result
+
+The communication works in both directions:
+
+```text
+A -> C : OK
+C -> A : OK
+```
 
 ---
 
 ### Key Takeaway
 
-For router-to-router links, `/30` is usually the cleanest subnet.
+When traffic crosses multiple routers, every router must know the next hop toward the destination.
+
+The forward path and reverse path must both be valid.
+
+---
+
+### Best Practice
+
+For this type of topology, solve in this order:
+
+```text
+1. Configure A with R1.
+2. Configure R1 with R2.
+3. Configure R2 with C.
+4. Add the route from A toward C.
+5. Add the route from C back toward A.
+6. Check that R1 and R2 point to each other correctly.
+```
+
+Do not start by guessing routes.
+
+First split the topology into separate networks.
 
 ---
 
@@ -1069,6 +1737,7 @@ For router-to-router links, `/30` is usually the cleanest subnet.
 ---
 
 ## Level 8
+## Level 8
 
 <details>
 <summary><strong>show</strong></summary>
@@ -1079,48 +1748,305 @@ For router-to-router links, `/30` is usually the cleanest subnet.
 
 ### Goal
 
-This level focuses on troubleshooting forward and reverse routes.
+This level has three communication goals:
+
+```text
+C <--> D
+C <--> Somewhere on the Net
+D <--> Somewhere on the Net
+```
+
+Hosts `C` and `D` must communicate with each other, and both of them must also reach the Internet.
 
 ---
 
-### Explanation
+### Network Topology
 
-If the forward path works but the reverse path does not, NetPractice may show:
+The topology can be simplified like this:
+
+```text
+C <--> R2 <--> R1 <--> Internet
+       |
+       D
+```
+
+More precisely, the network is split into these parts:
+
+```text
+Network 1: C + R2
+Network 2: D + R2
+Network 3: R2 + R1
+Network 4: R1 + Internet
+```
+
+This level is mainly about routing traffic from internal networks to the Internet and making sure the Internet can return the traffic correctly.
+
+---
+
+### Network Analysis
+
+Host `C` is connected to router `R2`.
+
+From the log:
+
+```text
+C sends to gateway 128.24.243.1 through interface C1
+```
+
+So `C` uses `R2` as its gateway.
+
+Host `D` is also connected to router `R2`.
+
+From the log:
+
+```text
+D sends to gateway 128.24.243.25 through interface D1
+```
+
+So `D` also uses `R2` as its gateway, but through a different router interface.
+
+Then `R2` sends traffic upward to `R1`:
+
+```text
+R2 sends to gateway 128.24.243.62 through interface R21
+```
+
+Finally, `R1` sends traffic to the Internet:
+
+```text
+R1 sends to gateway 163.225.250.1 through interface R12
+```
+
+So the Internet path is:
+
+```text
+C/D -> R2 -> R1 -> Internet
+```
+
+---
+
+### Goal 1: C to D
+
+The first goal is local internal routing between `C` and `D`.
+
+Forward path:
+
+```text
+C -> R2 -> D
+```
+
+From the log:
+
+```text
+Forward way: C -> D
+on C: route match 0.0.0.0/0
+on C: send to gateway 128.24.243.1 through interface C1
+on R2: send to R23
+on D: destination IP reached
+```
+
+Reverse path:
+
+```text
+D -> R2 -> C
+```
+
+From the log:
+
+```text
+Reverse way: D -> C
+on D: route match default
+on D: send to gateway 128.24.243.25 through interface D1
+on R2: send to R22
+on C: destination IP reached
+```
+
+This works because both hosts use `R2` as their gateway.
+
+---
+
+### Goal 2: C to Internet
+
+The forward path from `C` to the Internet is:
+
+```text
+C -> R2 -> R1 -> Internet
+```
+
+From the log:
+
+```text
+on C: send to gateway 128.24.243.1 through interface C1
+on R2: send to gateway 128.24.243.62 through interface R21
+on R1: send to gateway 163.225.250.1 through interface R12
+on I: destination IP reached
+```
+
+This confirms that the forward route works.
+
+The reverse path is:
+
+```text
+Internet -> R1 -> R2 -> C
+```
+
+From the log:
+
+```text
+on I: route match 128.24.243.0/26
+on I: send to gateway 163.225.250.12 through interface I1
+on R1: send to gateway 128.24.243.61 through interface R13
+on R2: send to R22
+on C: destination IP reached
+```
+
+This means the Internet has a route back to the internal network.
+
+---
+
+### Goal 3: D to Internet
+
+The forward path from `D` to the Internet is:
+
+```text
+D -> R2 -> R1 -> Internet
+```
+
+From the log:
+
+```text
+on D: send to gateway 128.24.243.25 through interface D1
+on R2: send to gateway 128.24.243.62 through interface R21
+on R1: send to gateway 163.225.250.1 through interface R12
+on I: destination IP reached
+```
+
+The reverse path is:
+
+```text
+Internet -> R1 -> R2 -> D
+```
+
+From the log:
+
+```text
+on I: route match 128.24.243.0/26
+on I: send to gateway 163.225.250.12 through interface I1
+on R1: send to gateway 128.24.243.61 through interface R13
+on R2: send to R23
+on D: destination IP reached
+```
+
+This confirms that Internet replies can return to both internal hosts.
+
+---
+
+### Why the Internet Route Is Important
+
+The Internet must know how to return traffic to the internal network.
+
+In this level, the Internet route matches:
+
+```text
+128.24.243.0/26
+```
+
+and sends the packet to:
+
+```text
+163.225.250.12
+```
+
+That IP is the router interface connected to the Internet side.
+
+The idea is:
+
+```text
+Internal network => R1 interface connected to Internet
+```
+
+Without this route, the forward path may reach the Internet, but the reverse path would fail with:
 
 ```text
 No reverse way
 ```
 
-If traffic keeps moving between the same devices, it may show:
+---
+
+### Why R1 Needs a Route Back to R2
+
+When the Internet sends the packet back to `R1`, `R1` must know that the internal hosts are behind `R2`.
+
+From the log:
 
 ```text
-Loop detected
+on R1: send to gateway 128.24.243.61 through interface R13
+```
+
+That means `R1` sends internal traffic back to `R2`.
+
+So the return path becomes:
+
+```text
+Internet -> R1 -> R2 -> C/D
 ```
 
 ---
 
-### How to Debug
+### Final Result
 
-Read the log and find the first real routing error.
-
-Important messages:
+All goals work:
 
 ```text
-destination does not match any route
-invalid route
-route match but no interface for gateway
-loop detected
+C -> D        : OK
+C -> Internet : OK
+D -> Internet : OK
 ```
 
-These messages usually point to the wrong route or gateway.
+And all reverse paths work:
+
+```text
+D -> C        : OK
+Internet -> C : OK
+Internet -> D : OK
+```
 
 ---
 
 ### Key Takeaway
 
-Do not randomly change IPs.
+This level is about complete routing, not just forward routing.
 
-Use the log to find where the packet fails.
+For Internet communication, the network needs:
+
+```text
+1. Host default gateways
+2. R2 route toward R1
+3. R1 default route toward Internet
+4. Internet reverse route toward the internal network
+5. R1 route back toward R2
+```
+
+Every step must work in both directions.
+
+---
+
+### Best Practice
+
+For levels with Internet and multiple routers, solve in this order:
+
+```text
+1. Make C reach D internally.
+2. Make C and D reach R2.
+3. Make R2 reach R1.
+4. Make R1 reach the Internet.
+5. Add the Internet reverse route.
+6. Check that R1 sends returning traffic back to R2.
+```
+
+Do not stop when the forward path reaches the Internet.
+
+Always verify the reverse path.
 
 ---
 
@@ -1136,6 +2062,8 @@ Use the log to find where the packet fails.
 
 ## Level 9
 
+## Level 9
+
 <details>
 <summary><strong>show</strong></summary>
 
@@ -1145,48 +2073,435 @@ Use the log to find where the packet fails.
 
 ### Goal
 
-This level combines several concepts:
+This level has six communication goals:
 
 ```text
-Hosts
-Switches
-Routers
-Multiple subnets
-Internet routes
+A <--> B
+C <--> D
+A <--> Internet
+A <--> D
+B <--> C
+C <--> Internet
+```
+
+This level combines:
+
+```text
+Switch networks
+Multiple routers
+Host gateways
+Router-to-router routing
+Internet routing
 Reverse paths
 ```
 
 ---
 
-### Explanation
+### Network Topology
 
-For larger levels, the correct approach is to split the diagram into separate networks.
+The topology can be simplified like this:
 
-A switch keeps devices in the same network.
+```text
+A ----\
+       Switch S ---- R1 ---- Internet
+B ----/              |
+                     |
+                    R2
+                   /  \
+                  C    D
+```
 
-A router separates networks.
+The network is split into several parts:
+
+```text
+Network 1: A + B + R1 through the switch
+Network 2: R1 + Internet
+Network 3: R1 + R2
+Network 4: C + R2
+Network 5: D + R2
+```
+
+This is why the level must be solved by separating the topology into smaller networks first.
 
 ---
 
-### How to Think
+### Network Analysis
 
-For every section:
+The first network contains `A`, `B`, and `R1` connected through a switch.
 
-1. Count the required usable IP addresses.
-2. Choose a subnet that fits.
-3. Assign valid IPs.
-4. Avoid network and broadcast addresses.
-5. Configure host gateways.
-6. Configure router routes.
-7. Configure Internet reverse routes.
+From the log:
+
+```text
+A = 12.168.63.2
+B = 12.168.63.3
+R1 = 12.168.63.1
+```
+
+These devices are in the same switch network.
+
+So `A`, `B`, and `R1` must belong to the same subnet.
+
+---
+
+### Goal 1: A to B
+
+The first goal is local communication through the switch:
+
+```text
+A <--> B
+```
+
+From the log:
+
+```text
+Forward way: A -> B
+on A: send to A1
+on switch S: pass to all connections
+on B: destination IP reached
+```
+
+And the reverse path:
+
+```text
+Reverse way: B -> A
+on B: send to B1
+on A: destination IP reached
+```
+
+This works because `A` and `B` are in the same subnet and connected to the same switch.
+
+No router is needed for this goal.
+
+---
+
+### Goal 2: C to D
+
+The second goal is communication between hosts behind `R2`:
+
+```text
+C <--> D
+```
+
+From the log:
+
+```text
+C sends to gateway 1.0.0.2 through interface C1
+R2 sends to R23
+D destination IP reached
+```
+
+The path is:
+
+```text
+C -> R2 -> D
+```
+
+The reverse path is:
+
+```text
+D -> R2 -> C
+```
+
+From the log:
+
+```text
+D sends to gateway 18.124.23.219 through interface D1
+R2 sends to R22
+C destination IP reached
+```
+
+This works because both `C` and `D` use `R2` as their gateway.
+
+---
+
+### Goal 3: A to Internet
+
+The third goal is:
+
+```text
+A <--> Internet
+```
+
+The forward path is:
+
+```text
+A -> R1 -> Internet
+```
+
+From the log:
+
+```text
+on A: route match 0.0.0.0/0
+on A: send to gateway 12.168.63.1 through interface A1
+on R1: send to R12
+on I: destination IP reached
+```
+
+This means `A` uses `R1` as its default gateway.
+
+The reverse path is:
+
+```text
+Internet -> R1 -> A
+```
+
+From the log:
+
+```text
+on I: route match 12.168.63.1/25
+on I: send to gateway 163.172.250.12 through interface I1
+on R1: send to R11
+on A: destination IP reached
+```
+
+This confirms that the Internet has a route back to the switch network.
+
+---
+
+### Goal 4: A to D
+
+The fourth goal is:
+
+```text
+A <--> D
+```
+
+The forward path is:
+
+```text
+A -> R1 -> R2 -> D
+```
+
+From the log:
+
+```text
+on A: send to gateway 12.168.63.1 through interface A1
+on R1: route match 18.124.23.219/18
+on R1: send to gateway 163.172.250.253 through interface R13
+on R2: send to R23
+on D: destination IP reached
+```
+
+This means:
+
+1. `A` sends the packet to `R1`.
+2. `R1` knows that `D` is behind `R2`.
+3. `R1` sends the packet to `R2`.
+4. `R2` sends it to `D`.
+
+The reverse path is:
+
+```text
+D -> R2 -> R1 -> A
+```
+
+From the log:
+
+```text
+on D: send to gateway 18.124.23.219 through interface D1
+on R2: route match 0.0.0.0/0
+on R2: send to gateway 163.172.250.254 through interface R21
+on R1: send to R11
+on A: destination IP reached
+```
+
+The reverse path works because `R2` sends unknown traffic back to `R1`.
+
+---
+
+### Goal 5: B to C
+
+The fifth goal is:
+
+```text
+B <--> C
+```
+
+The forward path is:
+
+```text
+B -> R1 -> R2 -> C
+```
+
+From the log:
+
+```text
+on B: send to gateway 12.168.63.1 through interface B1
+on R1: route match 1.0.0.2/30
+on R1: send to gateway 163.172.250.253 through interface R13
+on R2: send to R22
+on C: destination IP reached
+```
+
+The reverse path is:
+
+```text
+C -> R2 -> R1 -> B
+```
+
+From the log:
+
+```text
+on C: send to gateway 1.0.0.2 through interface C1
+on R2: route match 0.0.0.0/0
+on R2: send to gateway 163.172.250.254 through interface R21
+on R1: send to R11
+on B: destination IP reached
+```
+
+This confirms that the route works in both directions.
+
+---
+
+### Goal 6: C to Internet
+
+The sixth goal is:
+
+```text
+C <--> Internet
+```
+
+The forward path is:
+
+```text
+C -> R2 -> R1 -> Internet
+```
+
+From the log:
+
+```text
+on C: send to gateway 1.0.0.2 through interface C1
+on R2: send to gateway 163.172.250.254 through interface R21
+on R1: send to R12
+on I: destination IP reached
+```
+
+The reverse path is:
+
+```text
+Internet -> R1 -> R2 -> C
+```
+
+From the log:
+
+```text
+on I: route match 1.0.0.2/30
+on I: send to gateway 163.172.250.12 through interface I1
+on R1: route match 1.0.0.2/30
+on R1: send to gateway 163.172.250.253 through interface R13
+on R2: send to R22
+on C: destination IP reached
+```
+
+This confirms that the Internet can return traffic to `C`.
+
+---
+
+### Why Multiple Routes Are Needed
+
+This level has several networks, so one route is not enough.
+
+`R1` must know how to reach:
+
+```text
+The switch network with A and B
+The network behind R2 where C exists
+The network behind R2 where D exists
+The Internet
+```
+
+`R2` must know how to reach:
+
+```text
+C directly
+D directly
+R1 for everything outside its local networks
+```
+
+The Internet must know how to send traffic back to the internal networks.
+
+---
+
+### Why the Switch Still Shows `loop detected`
+
+The log contains:
+
+```text
+loop detected
+```
+
+This appears when the switch tests links and sees the packet return toward the sender.
+
+In this level, it is not the real issue because the final destination is reached.
+
+The important successful line is:
+
+```text
+destination IP reached
+```
+
+---
+
+### Final Result
+
+All goals work:
+
+```text
+A -> B        : OK
+C -> D        : OK
+A -> Internet : OK
+A -> D        : OK
+B -> C        : OK
+C -> Internet : OK
+```
+
+And all reverse paths work:
+
+```text
+B -> A        : OK
+D -> C        : OK
+Internet -> A : OK
+D -> A        : OK
+C -> B        : OK
+Internet -> C : OK
+```
 
 ---
 
 ### Key Takeaway
 
-In complex topologies, subnet separation is the first step.
+This level is about combining several networking ideas at once:
 
-Routes come after that.
+```text
+Switch = same local network
+Router = separates networks
+Gateway = next hop
+Routing table = path to remote networks
+Internet route = needs reverse path
+```
+
+The correct solution depends on building both the forward path and the reverse path.
+
+---
+
+### Best Practice
+
+For a level like this, solve in this order:
+
+```text
+1. Fix A, B, and R1 on the switch network.
+2. Fix C and R2.
+3. Fix D and R2.
+4. Fix the R1-to-R2 link.
+5. Make A and B reach C and D.
+6. Make internal networks reach the Internet.
+7. Add Internet reverse routes.
+8. Read the logs and fix one error at a time.
+```
+
+Do not start with the Internet.
+
+Start with the local networks, then connect them together.
 
 ---
 
