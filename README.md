@@ -486,26 +486,32 @@ A <--> B
 C <--> D
 ```
 
-There are no routers.
-
----
-
-### Explanation
+There are no routers and no switches.
 
 Each pair of hosts is directly connected.
 
-That means:
+---
+
+### Network Topology
+
+The topology can be simplified like this:
 
 ```text
-A1 and B1 must be in the same subnet.
-C1 and D1 must be in the same subnet.
+A <--> B
+
+C <--> D
 ```
 
-No gateway is needed because there is no router.
+So we have two independent small networks:
+
+```text
+Network 1: A + B
+Network 2: C + D
+```
 
 ---
 
-### Why It Works
+### Network Analysis
 
 For the first connection:
 
@@ -515,11 +521,17 @@ B1 = 104.95.23.12
 Mask = 255.255.255.0
 ```
 
-Both are inside:
+This mask is `/24`.
+
+So both interfaces are inside:
 
 ```text
 104.95.23.0/24
 ```
+
+That means `A` and `B` can communicate directly.
+
+---
 
 For the second connection:
 
@@ -529,19 +541,58 @@ D1 = 211.191.135.74
 Mask = 255.255.0.0
 ```
 
-Both are inside:
+This mask is `/16`.
+
+So both interfaces are inside:
 
 ```text
 211.191.0.0/16
 ```
 
-So both pairs can communicate directly.
+That means `C` and `D` can also communicate directly.
+
+---
+
+### Why No Gateway Is Needed
+
+A gateway is only needed when a device wants to reach another network through a router.
+
+In this level:
+
+```text
+A and B are directly connected.
+C and D are directly connected.
+```
+
+There is no router.
+
+So no gateway is needed.
+
+---
+
+### Final Result
+
+Both goals work:
+
+```text
+A -> B : OK
+C -> D : OK
+```
+
+And the reverse paths also work:
+
+```text
+B -> A : OK
+D -> C : OK
+```
 
 ---
 
 ### Key Takeaway
 
-Directly connected devices must be part of the same subnet.
+When two hosts are directly connected, both interfaces must belong to the same subnet.
+
+If they are in the same subnet, they can communicate directly without a gateway.
 
 ---
 
@@ -566,31 +617,118 @@ Directly connected devices must be part of the same subnet.
 
 ### Goal
 
-This level focuses on making directly connected devices communicate by fixing IP addresses and subnet masks.
+This level has two separate communication goals:
+
+```text
+B <--> A
+D <--> C
+```
+
+There are still no routers and no switches.
+
+Each pair of hosts is directly connected.
 
 ---
 
-### Explanation
+### Network Topology
 
-When two interfaces are directly connected, they must belong to the same subnet.
+The topology can be simplified like this:
 
-A gateway is not needed unless the destination is outside the local network.
+```text
+B <--> A
+
+D <--> C
+```
+
+So we have two independent networks:
+
+```text
+Network 1: A + B
+Network 2: C + D
+```
 
 ---
 
-### How to Think
+### Network Analysis
 
-For each connected pair:
+For the first connection:
 
-1. Read the IP address.
-2. Read the mask.
-3. Calculate the network.
-4. Make sure both interfaces belong to the same network.
-5. Make sure neither IP is the network address or broadcast address.
+```text
+A1 = 192.168.99.221
+B1 = 192.168.99.222
+Mask = 255.255.255.224
+```
+
+The mask `255.255.255.224` is `/27`.
+
+A `/27` subnet increases by blocks of 32 in the last octet:
+
+```text
+0, 32, 64, 96, 128, 160, 192, 224
+```
+
+The IP addresses `192.168.99.221` and `192.168.99.222` are inside this subnet:
+
+```text
+Network:   192.168.99.192/27
+Usable:    192.168.99.193 - 192.168.99.222
+Broadcast: 192.168.99.223
+```
+
+So both `A1` and `B1` are valid usable IP addresses in the same subnet.
+
+That is why `A` and `B` can communicate directly.
 
 ---
 
-### Key Takeaway
+For the second connection:
+
+```text
+C1 = 12.0.0.1
+D1 = 12.0.0.2
+Mask = 255.255.255.252
+```
+
+The mask `255.255.255.252` is `/30`.
+
+A `/30` subnet has 4 total addresses:
+
+```text
+Network address
+2 usable host addresses
+Broadcast address
+```
+
+For this network:
+
+```text
+Network:   12.0.0.0/30
+Usable:    12.0.0.1
+Usable:    12.0.0.2
+Broadcast: 12.0.0.3
+```
+
+So `C1` and `D1` are exactly the two usable IP addresses.
+
+That is why `C` and `D` can communicate directly.
+
+---
+
+### Why No Gateway Is Needed
+
+Both goals are between directly connected hosts.
+
+There is no router in this level.
+
+So the devices only need correct IP addresses and masks.
+
+No default gateway is required.
+
+---
+
+### Understanding the Main Idea
+
+This level is mainly about choosing a valid subnet mask.
 
 The IP address alone is not enough.
 
@@ -598,6 +736,41 @@ You must always check:
 
 ```text
 IP + Mask
+```
+
+because the mask decides the real network range.
+
+---
+
+### Final Result
+
+Both goals work:
+
+```text
+B -> A : OK
+D -> C : OK
+```
+
+And the reverse paths also work:
+
+```text
+A -> B : OK
+C -> D : OK
+```
+
+---
+
+### Key Takeaway
+
+Directly connected devices must be in the same subnet.
+
+Also, the IP addresses must not be the network address or the broadcast address.
+
+In this level:
+
+```text
+192.168.99.221 and 192.168.99.222 are valid inside 192.168.99.192/27
+12.0.0.1 and 12.0.0.2 are valid inside 12.0.0.0/30
 ```
 
 ---
