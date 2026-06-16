@@ -614,6 +614,8 @@ IP + Mask
 
 ## Level 3
 
+## Level 3
+
 <details>
 <summary><strong>show</strong></summary>
 
@@ -623,53 +625,196 @@ IP + Mask
 
 ### Goal
 
-This level introduces routing through a gateway.
+This level has three communication goals:
 
-A host needs to reach a network that is not directly connected.
+```text
+A <--> B
+A <--> C
+B <--> C
+```
+
+All three hosts are connected to the same switch.
 
 ---
 
-### Explanation
+### Network Topology
 
-When a host wants to reach another network, it must send the packet to a gateway.
+The topology can be simplified like this:
 
-The gateway must be the router interface that is directly connected to the host's network.
+```text
+        Switch S
+       /   |   \
+      A    B    C
+```
+
+There is no router in this level.
+
+That means all connected hosts must be part of the same local network.
 
 ---
 
-### Correct Idea
+### Network Analysis
+
+The switch connects all hosts inside the same network.
+
+A switch does not separate networks.
+It only forwards traffic between devices connected to it.
+
+So the important rule here is:
 
 ```text
-Host default route => nearest router interface
+A, B, and C must be in the same subnet.
 ```
 
-Example:
+From the successful log, the hosts communicate using these IP addresses:
 
 ```text
-0.0.0.0/0 => router interface IP
+A = 104.198.223.125
+B = 104.198.223.123
+C = 104.198.223.124
 ```
+
+All of them are inside the same IP range:
+
+```text
+104.198.223.x
+```
+
+So they can communicate directly through the switch.
 
 ---
 
-### Common Mistake
+### Why No Gateway Is Needed
 
-Wrong:
+There is no router in this level.
+
+Since all hosts are in the same subnet, packets do not need to leave the local network.
+
+So no default gateway is required.
+
+The hosts can send packets directly to each other through the switch.
+
+---
+
+### Understanding the Log
+
+Example from Goal 1:
 
 ```text
-0.0.0.0/0 => final destination IP
+Forward way: A -> B
+on A: packet accepted
+on A: send to A1
+on switch S: pass to all connections
+on B: packet accepted
+on B: destination IP reached
 ```
 
-Correct:
+This means:
+
+1. Host A accepted the packet.
+2. A sent the packet through interface `A1`.
+3. The switch forwarded the packet to connected devices.
+4. Host B received the packet.
+5. The destination was reached successfully.
+
+---
+
+### Why `packet not for me` Appears
+
+In the log, we also see:
 
 ```text
-0.0.0.0/0 => next hop router
+on C: packet not for me
+```
+
+This is normal.
+
+Because the switch forwards traffic to connected devices, another host may see the packet but ignore it if the destination IP is not its own IP.
+
+So when A sends a packet to B, host C may receive the packet but rejects it because it is not the destination.
+
+---
+
+### Why `loop detected` Appears
+
+The log also shows:
+
+```text
+on A: loop detected
+```
+
+or:
+
+```text
+on B: loop detected
+```
+
+In this level, this is not the main problem because the final result is successful.
+
+The important line is:
+
+```text
+destination IP reached
+```
+
+The switch tests all connected links, including the sender itself.
+When the packet is seen again by the original sender, NetPractice marks it as a loop in the log.
+
+As long as the destination is reached and the status is `OK`, this is not an issue for this level.
+
+---
+
+### Final Result
+
+All communication goals work:
+
+```text
+A -> B : OK
+A -> C : OK
+B -> C : OK
+```
+
+And the reverse paths also work:
+
+```text
+B -> A : OK
+C -> A : OK
+C -> B : OK
 ```
 
 ---
 
 ### Key Takeaway
 
-A gateway is the next hop, not the final destination.
+When multiple hosts are connected to the same switch:
+
+```text
+They must belong to the same subnet.
+```
+
+A switch does not route traffic between networks.
+
+If the hosts are in different subnets, a router would be needed.
+
+---
+
+### Best Practice
+
+For a switch network, count how many usable IP addresses are needed.
+
+In this level, there are three hosts:
+
+```text
+A
+B
+C
+```
+
+So the subnet must provide at least three usable IP addresses.
+
+A `/30` would not be enough because it gives only two usable IP addresses.
+
+A `/29` or larger subnet would work because `/29` gives six usable IP addresses.
 
 ---
 
