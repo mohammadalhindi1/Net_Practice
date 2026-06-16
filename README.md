@@ -2515,50 +2515,522 @@ Start with the local networks, then connect them together.
 
 This is the final NetPractice level.
 
-It combines everything:
+It has seven communication goals:
 
 ```text
-Direct communication
+H1 <--> H2
+H3 <--> H4
+H1 <--> Internet
+H1 <--> H4
+H2 <--> H3
+H3 <--> Internet
+H4 <--> Internet
+```
+
+This level combines almost everything from the previous levels:
+
+```text
 Switch networks
-Router-to-router links
-Subnetting
-Default gateways
-Routing tables
-Internet reverse routes
-Log debugging
+Multiple hosts
+Multiple routers
+Router-to-router routing
+Host gateways
+Internet access
+Reverse routes
+Log-based debugging
 ```
 
 ---
 
-### Explanation
+### Network Topology
 
-The final level should be solved step by step.
+The topology can be simplified like this:
 
-Do not try to solve the whole diagram at once.
+```text
+H1 ----\
+        Switch S1 ---- R1 ---- Internet
+H2 ----/               |
+                       |
+                      R2
+                    /    \
+                  H3      H4
+```
 
-Start with the directly connected hosts, then move to switches, routers, and finally the Internet routes.
+The network is split into these main parts:
+
+```text
+Network 1: H1 + H2 + R1 through switch S1
+Network 2: R1 + Internet
+Network 3: R1 + R2
+Network 4: H3 + R2
+Network 5: H4 + R2
+```
+
+This level should not be solved as one big network.
+
+It must be separated into smaller networks first.
 
 ---
 
-### Solving Order
+### Network Analysis
+
+The first local network contains `H1`, `H2`, and `R1` through the switch.
+
+From the log:
 
 ```text
-1. Direct host communication
-2. Switch networks
-3. Router-to-router links
-4. Host gateways
-5. Router routes
-6. Internet reverse routes
-7. Logs and final debugging
+H1 = 162.74.222.2
+H2 = 162.74.222.3
+R1 = 162.74.222.1
+```
+
+These devices are in the same switch network.
+
+So `H1`, `H2`, and the local interface of `R1` must belong to the same subnet.
+
+---
+
+### Goal 1: H1 to H2
+
+The first goal is local communication through the switch:
+
+```text
+H1 <--> H2
+```
+
+From the log:
+
+```text
+Forward way: H1 -> H2
+on H1: send to H11
+on switch S1: pass to all connections
+on H2: destination IP reached
+```
+
+The reverse path also works:
+
+```text
+Reverse way: H2 -> H1
+on H2: send to H21
+on H1: destination IP reached
+```
+
+This works because `H1` and `H2` are in the same subnet and connected to the same switch.
+
+No router is needed for this local communication.
+
+---
+
+### Goal 2: H3 to H4
+
+The second goal is communication between hosts behind `R2`:
+
+```text
+H3 <--> H4
+```
+
+Forward path:
+
+```text
+H3 -> R2 -> H4
+```
+
+From the log:
+
+```text
+on H3: route match 0.0.0.0/0
+on H3: send to gateway 162.74.222.250 through interface H31
+on R2: send to R23
+on H4: destination IP reached
+```
+
+Reverse path:
+
+```text
+H4 -> R2 -> H3
+```
+
+From the log:
+
+```text
+on H4: route match default
+on H4: send to gateway 162.74.222.129 through interface H41
+on R2: send to R22
+on H3: destination IP reached
+```
+
+This works because both `H3` and `H4` use `R2` as their gateway.
+
+---
+
+### Goal 3: H1 to Internet
+
+The third goal is:
+
+```text
+H1 <--> Internet
+```
+
+Forward path:
+
+```text
+H1 -> R1 -> Internet
+```
+
+From the log:
+
+```text
+on H1: route match 0.0.0.0/0
+on H1: send to gateway 162.74.222.1 through interface H11
+on R1: send to R12
+on I: destination IP reached
+```
+
+Reverse path:
+
+```text
+Internet -> R1 -> H1
+```
+
+From the log:
+
+```text
+on I: route match 162.74.222.1/24
+on I: send to gateway 163.172.250.12 through interface I1
+on R1: send to R11
+on H1: destination IP reached
+```
+
+This confirms that the Internet has a route back to the internal network.
+
+---
+
+### Goal 4: H1 to H4
+
+The fourth goal is:
+
+```text
+H1 <--> H4
+```
+
+Forward path:
+
+```text
+H1 -> R1 -> R2 -> H4
+```
+
+From the log:
+
+```text
+on H1: send to gateway 162.74.222.1 through interface H11
+on R1: route match 162.74.222.1/24
+on R1: send to gateway 162.74.222.253 through interface R13
+on R2: send to R23
+on H4: destination IP reached
+```
+
+Reverse path:
+
+```text
+H4 -> R2 -> R1 -> H1
+```
+
+From the log:
+
+```text
+on H4: send to gateway 162.74.222.129 through interface H41
+on R2: route match 0.0.0.0/0
+on R2: send to gateway 162.74.222.254 through interface R21
+on R1: send to R11
+on H1: destination IP reached
+```
+
+This confirms that traffic can move between the switch network and the networks behind `R2`.
+
+---
+
+### Goal 5: H2 to H3
+
+The fifth goal is:
+
+```text
+H2 <--> H3
+```
+
+Forward path:
+
+```text
+H2 -> R1 -> R2 -> H3
+```
+
+From the log:
+
+```text
+on H2: route match default
+on H2: send to gateway 162.74.222.1 through interface H21
+on R1: send to gateway 162.74.222.253 through interface R13
+on R2: send to R22
+on H3: destination IP reached
+```
+
+Reverse path:
+
+```text
+H3 -> R2 -> R1 -> H2
+```
+
+From the log:
+
+```text
+on H3: route match 0.0.0.0/0
+on H3: send to gateway 162.74.222.250 through interface H31
+on R2: send to gateway 162.74.222.254 through interface R21
+on R1: send to R11
+on H2: destination IP reached
+```
+
+This works because both router paths are valid.
+
+---
+
+### Goal 6: H3 to Internet
+
+The sixth goal is:
+
+```text
+H3 <--> Internet
+```
+
+Forward path:
+
+```text
+H3 -> R2 -> R1 -> Internet
+```
+
+From the log:
+
+```text
+on H3: send to gateway 162.74.222.250 through interface H31
+on R2: send to gateway 162.74.222.254 through interface R21
+on R1: send to R12
+on I: destination IP reached
+```
+
+Reverse path:
+
+```text
+Internet -> R1 -> R2 -> H3
+```
+
+From the log:
+
+```text
+on I: route match 162.74.222.1/24
+on I: send to gateway 163.172.250.12 through interface I1
+on R1: send to gateway 162.74.222.253 through interface R13
+on R2: send to R22
+on H3: destination IP reached
+```
+
+This confirms that `H3` can reach the Internet and receive the response back.
+
+---
+
+### Goal 7: H4 to Internet
+
+The seventh goal is:
+
+```text
+H4 <--> Internet
+```
+
+Forward path:
+
+```text
+H4 -> R2 -> R1 -> Internet
+```
+
+From the log:
+
+```text
+on H4: route match default
+on H4: send to gateway 162.74.222.129 through interface H41
+on R2: send to gateway 162.74.222.254 through interface R21
+on R1: send to R12
+on I: destination IP reached
+```
+
+Reverse path:
+
+```text
+Internet -> R1 -> R2 -> H4
+```
+
+From the log:
+
+```text
+on I: route match 162.74.222.1/24
+on I: send to gateway 163.172.250.12 through interface I1
+on R1: send to gateway 162.74.222.253 through interface R13
+on R2: send to R23
+on H4: destination IP reached
+```
+
+This confirms that `H4` can also reach the Internet and receive traffic back.
+
+---
+
+### Why One Large Internal Route Works Here
+
+In this level, many internal hosts use addresses inside:
+
+```text
+162.74.222.x
+```
+
+The Internet route matches:
+
+```text
+162.74.222.1/24
+```
+
+This route is used to send replies from the Internet back toward the internal network through `R1`.
+
+The important idea is:
+
+```text
+Internal network => R1 interface connected to Internet
+```
+
+Then `R1` forwards the traffic either to:
+
+```text
+H1/H2 through the switch
+```
+
+or to:
+
+```text
+R2 for H3/H4
+```
+
+depending on the destination.
+
+---
+
+### Why R1 and R2 Must Point to Each Other Correctly
+
+For traffic between the upper switch network and the lower hosts, the path depends on the router-to-router link.
+
+From `R1` to `R2`:
+
+```text
+R1 -> 162.74.222.253
+```
+
+From `R2` back to `R1`:
+
+```text
+R2 -> 162.74.222.254
+```
+
+If either side points to the wrong gateway, traffic can fail or create a loop.
+
+---
+
+### Why `loop detected` Appears
+
+The log contains lines like:
+
+```text
+loop detected
+```
+
+This appears mostly around the switch tests.
+
+In this level, it is not the real issue because the packet still reaches the destination.
+
+The important line is:
+
+```text
+destination IP reached
+```
+
+As long as every forward and reverse path reaches the destination, the level is correct.
+
+---
+
+### Final Result
+
+All goals work:
+
+```text
+H1 -> H2       : OK
+H3 -> H4       : OK
+H1 -> Internet : OK
+H1 -> H4       : OK
+H2 -> H3       : OK
+H3 -> Internet : OK
+H4 -> Internet : OK
+```
+
+And all reverse paths work:
+
+```text
+H2 -> H1       : OK
+H4 -> H3       : OK
+Internet -> H1 : OK
+H4 -> H1       : OK
+H3 -> H2       : OK
+Internet -> H3 : OK
+Internet -> H4 : OK
 ```
 
 ---
 
 ### Key Takeaway
 
-Level 10 is not hard because of one complex idea.
+Level 10 is not about one new concept.
 
-It is hard because it combines many simple ideas at the same time.
+It is a combination of everything:
+
+```text
+Same-subnet communication through switches
+Routing between different networks
+Default gateways
+Router-to-router links
+Internet reverse routes
+Log-based troubleshooting
+```
+
+The correct method is to build the network from the inside out:
+
+```text
+Local networks first
+Router links second
+Internet routes last
+```
+
+---
+
+### Best Practice
+
+For final-level troubleshooting, use this order:
+
+```text
+1. Check direct host-to-host communication.
+2. Check switch networks.
+3. Check host gateways.
+4. Check router-to-router links.
+5. Check router routes.
+6. Check Internet forward path.
+7. Check Internet reverse path.
+8. Read the logs and fix one error at a time.
+```
+
+Do not randomly change routes.
+
+A single wrong default route can create a loop and break multiple goals.
 
 ---
 
@@ -2571,6 +3043,7 @@ It is hard because it combines many simple ideas at the same time.
 [back to contents](#contents)
 
 ---
+
 
 ## 42 Note
 
