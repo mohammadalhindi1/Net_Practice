@@ -614,8 +614,6 @@ IP + Mask
 
 ## Level 3
 
-## Level 3
-
 <details>
 <summary><strong>show</strong></summary>
 
@@ -830,8 +828,6 @@ A `/29` or larger subnet would work because `/29` gives six usable IP addresses.
 
 ## Level 4
 
-## Level 4
-
 <details>
 <summary><strong>show</strong></summary>
 
@@ -1031,8 +1027,6 @@ A `/29` or larger subnet would be enough.
 [back to contents](#contents)
 
 ---
-
-## Level 5
 
 ## Level 5
 
@@ -1259,8 +1253,6 @@ because `/30` gives exactly two usable IP addresses.
 [back to contents](#contents)
 
 ---
-
-## Level 6
 
 ## Level 6
 
@@ -1509,8 +1501,6 @@ Most Internet-level mistakes happen because the reverse route is missing or poin
 
 ## Level 7
 
-## Level 7
-
 <details>
 <summary><strong>show</strong></summary>
 
@@ -1736,7 +1726,6 @@ First split the topology into separate networks.
 
 ---
 
-## Level 8
 ## Level 8
 
 <details>
@@ -2059,8 +2048,6 @@ Always verify the reverse path.
 [back to contents](#contents)
 
 ---
-
-## Level 9
 
 ## Level 9
 
